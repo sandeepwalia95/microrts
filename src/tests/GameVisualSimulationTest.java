@@ -1,5 +1,6 @@
 package tests;
 
+import QMSajidWaliaMarciszewicz.QMSajidWaliaMarciszewicz;
 import ai.core.AI;
 import ai.*;
 import ai.abstraction.WorkerRush;
@@ -32,7 +33,8 @@ public class GameVisualSimulationTest {
         // Set AIs playing the game
         //AI ai1 = new BotExercise5(TIME_BUDGET, -1, utt, new BFSPathFinding());  //new WorkerRush(utt, new BFSPathFinding());
 
-        AI ai1 = new WorkerRush(utt);
+        //AI ai1 = new WorkerRush(utt);
+        AI ai1 = new QMSajidWaliaMarciszewicz(TIME_BUDGET, -1, utt, new BFSPathFinding());
         AI ai2 = new RandomBiasedAI();
 
 //        AI ai1 = new mc.MonteCarlo(100, -1, 100, 1000,
