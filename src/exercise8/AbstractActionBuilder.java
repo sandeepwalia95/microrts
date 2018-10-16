@@ -122,11 +122,24 @@ public class AbstractActionBuilder {
 
     public ArrayList<Harvest> allHarvestActions(GameState gs, Unit harvestWorker)
     {
-
         ArrayList<Harvest> list = new ArrayList<>();
 
-        //TODO 1: return a list of Harvest objects with all possible combinations resource-pile -> base
-        // don't forget to check the base (stockpile) is yours! Don't give resources to the enemy :)
+        ArrayList<Unit> resources = new ArrayList<>();
+        ArrayList<Unit> bases = new ArrayList<>();
+        for(Unit u:gs.getUnits())
+        {
+            if(u.getType().isResource)
+                resources.add(u);
+            if(u.getType().isStockpile && u.getPlayer()==player)
+                bases.add(u);
+        }
+        for(Unit res:resources)
+        {
+            for(Unit base:bases)
+            {
+                list.add(new Harvest(harvestWorker,res,base,pf));
+            }
+        }
 
         return list;
     }

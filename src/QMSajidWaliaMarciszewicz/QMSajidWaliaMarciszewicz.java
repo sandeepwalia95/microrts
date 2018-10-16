@@ -10,10 +10,7 @@ import rts.units.Unit;
 import rts.units.UnitTypeTable;
 
 import java.nio.file.Path;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
+import java.util.*;
 
 public class QMSajidWaliaMarciszewicz extends AIWithComputationBudget {
 
@@ -38,6 +35,11 @@ public class QMSajidWaliaMarciszewicz extends AIWithComputationBudget {
     private int _playerID;
 
     /**
+     * Object responsible for picking actions for agent's units. It represents the strategy picked by the agent.
+     */
+    private QMStrategy _strategy;
+
+    /**
      *
      * A constructor of a class initiating its private fields. Can be used for creating a new instance of a bot.
      *
@@ -53,7 +55,9 @@ public class QMSajidWaliaMarciszewicz extends AIWithComputationBudget {
         super(timeBudget,iterationBudget);
         this._utt = utt;
         this._pathFinding = pathFinding;
+
         this._actionCounter=0;
+        this._strategy = new QMStrategy(TIME_BUDGET, ITERATIONS_BUDGET);
     }
 
     /**
@@ -78,20 +82,9 @@ public class QMSajidWaliaMarciszewicz extends AIWithComputationBudget {
         _actionCounter++;
         _playerID = player;
 
-        //getting my units
-        if(gs.canExecuteAnyAction(_playerID))
-        {
-            for(Unit u : gs.getUnits())
-            {
-                if(u.getPlayer() == _playerID)
-                    ;
-            }
-        }
+        //place for solutions(strategies) created on the basis of pregame analysis
 
-        //object containing the actions agent's units will execute in the game
-        PlayerAction move = new PlayerAction();
-
-        return move;
+        return _strategy.execute(player,gs,_utt,_pathFinding);
     }
 
     /**
@@ -104,6 +97,7 @@ public class QMSajidWaliaMarciszewicz extends AIWithComputationBudget {
         QMSajidWaliaMarciszewicz instance = new QMSajidWaliaMarciszewicz(getTimeBudget(),getIterationsBudget(),_utt, _pathFinding);
         instance._playerID=_playerID;
         instance._actionCounter=_actionCounter;
+        instance._strategy = _strategy.clone();
         return instance;
     }
 
@@ -114,122 +108,12 @@ public class QMSajidWaliaMarciszewicz extends AIWithComputationBudget {
     @Override
     public List<ParameterSpecification> getParameters() {
 
-        List<ParameterSpecification> params = new List<ParameterSpecification>() {
-            @Override
-            public int size() {
-                return 0;
-            }
+        List<ParameterSpecification> params = new ArrayList<>();
 
-            @Override
-            public boolean isEmpty() {
-                return false;
-            }
-
-            @Override
-            public boolean contains(Object o) {
-                return false;
-            }
-
-            @Override
-            public Iterator<ParameterSpecification> iterator() {
-                return null;
-            }
-
-            @Override
-            public Object[] toArray() {
-                return new Object[0];
-            }
-
-            @Override
-            public <T> T[] toArray(T[] a) {
-                return null;
-            }
-
-            @Override
-            public boolean add(ParameterSpecification parameterSpecification) {
-                return false;
-            }
-
-            @Override
-            public boolean remove(Object o) {
-                return false;
-            }
-
-            @Override
-            public boolean containsAll(Collection<?> c) {
-                return false;
-            }
-
-            @Override
-            public boolean addAll(Collection<? extends ParameterSpecification> c) {
-                return false;
-            }
-
-            @Override
-            public boolean addAll(int index, Collection<? extends ParameterSpecification> c) {
-                return false;
-            }
-
-            @Override
-            public boolean removeAll(Collection<?> c) {
-                return false;
-            }
-
-            @Override
-            public boolean retainAll(Collection<?> c) {
-                return false;
-            }
-
-            @Override
-            public void clear() {
-
-            }
-
-            @Override
-            public ParameterSpecification get(int index) {
-                return null;
-            }
-
-            @Override
-            public ParameterSpecification set(int index, ParameterSpecification element) {
-                return null;
-            }
-
-            @Override
-            public void add(int index, ParameterSpecification element) {
-
-            }
-
-            @Override
-            public ParameterSpecification remove(int index) {
-                return null;
-            }
-
-            @Override
-            public int indexOf(Object o) {
-                return 0;
-            }
-
-            @Override
-            public int lastIndexOf(Object o) {
-                return 0;
-            }
-
-            @Override
-            public ListIterator<ParameterSpecification> listIterator() {
-                return null;
-            }
-
-            @Override
-            public ListIterator<ParameterSpecification> listIterator(int index) {
-                return null;
-            }
-
-            @Override
-            public List<ParameterSpecification> subList(int fromIndex, int toIndex) {
-                return null;
-            }
-        };
+        params.add(new ParameterSpecification("TimeBudget",int.class,TIME_BUDGET));
+        params.add(new ParameterSpecification("IterationsBudget",int.class,ITERATIONS_BUDGET));
+        params.add(new ParameterSpecification("UnitTypeTable",UnitTypeTable.class,_utt));
+        params.add(new ParameterSpecification("PathFinding",PathFinding.class,_pathFinding));
 
         return params;
     }

@@ -192,13 +192,11 @@ public class PlayerAbstractActionGenerator extends AbstractionLayerAI{
             t = actBuilder.trainAction(gs, u, rangedType);
             if (t != null) actions.add(t);
 
+        } else if(u.getType() == lightType || u.getType()==heavyType || u.getType()==rangedType)
+        {
+            Attack att = actBuilder.attackBehaviour(gs, u);
+            if (att != null) actions.add(att);
         }
-        //TODO 2: Add another condition here so light, heavy and range attack units create Attack abstract actions and
-        // includes them in the possible actions for MonteCarlo to consider.
-
-
-
-
 
         if(u.getType() != workerType) {
             //We always can do Idle
