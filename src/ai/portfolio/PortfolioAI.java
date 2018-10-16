@@ -212,7 +212,7 @@ public class PortfolioAI extends AIWithComputationBudget implements Interruptibl
         parameters.add(new ParameterSpecification("PlayoutLookahead",int.class,100));
         parameters.add(new ParameterSpecification("EvaluationFunction", EvaluationFunction.class, new SimpleSqrtEvaluationFunction3()));
 
-//        parameters.add(new ParameterSpecification("Solutions", AI[].class, strategies));
+//        parameters.add(new ParameterSpecification("Strategies", AI[].class, strategies));
 //        parameters.add(new ParameterSpecification("Deterministic", boolean[].class, deterministic));
         
         return parameters;

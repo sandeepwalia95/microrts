@@ -1,15 +1,16 @@
 package QMSajidWaliaMarciszewicz;
 
+import QMSajidWaliaMarciszewicz.Strategies.MonteCarloSearch;
+import ai.RandomAI;
 import ai.abstraction.pathfinding.PathFinding;
 import ai.core.AI;
 import ai.core.AIWithComputationBudget;
 import ai.core.ParameterSpecification;
+import ai.evaluation.SimpleSqrtEvaluationFunction3;
 import rts.GameState;
 import rts.PlayerAction;
-import rts.units.Unit;
 import rts.units.UnitTypeTable;
 
-import java.nio.file.Path;
 import java.util.*;
 
 public class QMSajidWaliaMarciszewicz extends AIWithComputationBudget {
@@ -34,10 +35,6 @@ public class QMSajidWaliaMarciszewicz extends AIWithComputationBudget {
      */
     private int _playerID;
 
-    /**
-     * Object responsible for picking actions for agent's units. It represents the strategy picked by the agent.
-     */
-    private QMStrategy _strategy;
 
     /**
      *
@@ -57,7 +54,6 @@ public class QMSajidWaliaMarciszewicz extends AIWithComputationBudget {
         this._pathFinding = pathFinding;
 
         this._actionCounter=0;
-        this._strategy = new QMStrategy(TIME_BUDGET, ITERATIONS_BUDGET);
     }
 
     /**
@@ -73,8 +69,8 @@ public class QMSajidWaliaMarciszewicz extends AIWithComputationBudget {
      *
      * @param player ID of the player to move. Use it to check whether units are yours or enemy's
      * @param gs the game state where the action should be performed
-     * @return
-     * @throws Exception
+     * @return object containing actions for all player's units
+     * @throws Exception thrown during strategy execution
      */
     @Override
     public PlayerAction getAction(int player, GameState gs) throws Exception {
@@ -84,7 +80,8 @@ public class QMSajidWaliaMarciszewicz extends AIWithComputationBudget {
 
         //place for solutions(strategies) created on the basis of pregame analysis
 
-        return _strategy.execute(player,gs,_utt,_pathFinding);
+        return new MonteCarloSearch(TIME_BUDGET,ITERATIONS_BUDGET,100,1000,new RandomAI(), new SimpleSqrtEvaluationFunction3())
+                .execute(player,gs,_utt,_pathFinding);
     }
 
     /**
@@ -97,7 +94,6 @@ public class QMSajidWaliaMarciszewicz extends AIWithComputationBudget {
         QMSajidWaliaMarciszewicz instance = new QMSajidWaliaMarciszewicz(getTimeBudget(),getIterationsBudget(),_utt, _pathFinding);
         instance._playerID=_playerID;
         instance._actionCounter=_actionCounter;
-        instance._strategy = _strategy.clone();
         return instance;
     }
 
@@ -126,7 +122,7 @@ public class QMSajidWaliaMarciszewicz extends AIWithComputationBudget {
      * function might be fully observable
      * @param milliseconds time limit to perform the analysis. If zero, you can take as
      * long as you need
-     * @throws Exception
+     * @throws Exception thrown while analysing the pre game state
      */
     @Override
     public void preGameAnalysis(GameState gs, long milliseconds) throws Exception {

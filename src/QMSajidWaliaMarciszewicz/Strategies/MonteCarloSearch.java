@@ -1,4 +1,4 @@
-package QMSajidWaliaMarciszewicz.Solutions;
+package QMSajidWaliaMarciszewicz.Strategies;
 
 import ai.abstraction.pathfinding.PathFinding;
 import ai.core.AI;
@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-public class MonteCarloSearch extends Solution {
+public class MonteCarloSearch extends QMStrategy {
 
     private long MAXACTIONS;
     private int MAXSIMULATIONTIME;
@@ -24,15 +24,15 @@ public class MonteCarloSearch extends Solution {
     private EvaluationFunction _ef = null;
 
     // Random number generator.
-    Random r = new Random();
-    long max_actions_so_far = 0;
+    private Random r = new Random();
+    private long max_actions_so_far = 0;
 
-    PlayerActionGenerator moveGenerator = null;
-    boolean allMovesGenerated = false;
+    private PlayerActionGenerator moveGenerator = null;
+    private boolean allMovesGenerated = false;
 
-    GameState gs_to_start_from = null; //Starting game state
-    int run = 0;
-    int playerForThisComputation;
+    private GameState gs_to_start_from = null; //Starting game state
+    private int run = 0;
+    private int playerForThisComputation;
 
     // statistics:
     public long total_runs = 0;
@@ -47,7 +47,7 @@ public class MonteCarloSearch extends Solution {
         int visit_count = 0;
     }
     //and a list with all the entries.
-    List<PlayerActionTableEntry> actions = null;
+    private List<PlayerActionTableEntry> actions = null;
 
 
     /**
@@ -76,8 +76,8 @@ public class MonteCarloSearch extends Solution {
      * @param utt a reference to an object that contains information about the available unit
      *      types in the game and their settings.
      * @param pf a reference to an object that can run path-planning queries in the map.
-     * @return
-     * @throws Exception
+     * @return set of actions of all player's units generetaed by this strategy
+     * @throws Exception thrown while generating a strategy
      */
     @Override
     public PlayerAction execute(int player, GameState gs, UnitTypeTable utt, PathFinding pf) throws Exception
@@ -252,9 +252,9 @@ public class MonteCarloSearch extends Solution {
 
     /**
      *
-     * @return
+     * @return new instance of the class
      */
-    public Solution clone() {
+    public QMStrategy clone() {
         return new MonteCarloSearch(TIME_BUDGET, ITERATIONS_BUDGET, MAXSIMULATIONTIME, MAXACTIONS, _policy, _ef);
     }
 
