@@ -6,6 +6,8 @@ package exercise8;
 
 import ai.RandomBiasedAI;
 import ai.abstraction.AbstractAction;
+import ai.abstraction.AbstractionLayerAI;
+import ai.abstraction.pathfinding.BFSPathFinding;
 import ai.core.AI;
 import ai.core.AIWithComputationBudget;
 import ai.core.InterruptibleAI;
@@ -14,6 +16,7 @@ import ai.evaluation.EvaluationFunction;
 import ai.evaluation.SimpleSqrtEvaluationFunction3;
 import rts.GameState;
 import rts.PlayerAction;
+import rts.PlayerActionGenerator;
 import rts.units.Unit;
 import rts.units.UnitTypeTable;
 
@@ -50,18 +53,18 @@ public class MonteCarlo extends AIWithComputationBudget implements Interruptible
     AI randomAI = new RandomBiasedAI();
     long max_actions_so_far = 0;
     
-    PlayerAbstractActionGenerator moveGenerator = null;
+    PlayerAbstractActionGenerator  moveGenerator = null;
     boolean allMovesGenerated = false;
 
     GameState gs_to_start_from = null; //Starting game state
     int run = 0;
     int playerForThisComputation;
-
+    
     // statistics:
     public long total_runs = 0;
     public long total_cycles_executed = 0;
     public long total_actions_issued = 0;
-
+        
     long MAXACTIONS = 100;
     int MAXSIMULATIONTIME = 1024;
     UnitTypeTable utt;
@@ -70,7 +73,7 @@ public class MonteCarlo extends AIWithComputationBudget implements Interruptible
 
     public MonteCarlo(UnitTypeTable utt) {
         this(100, -1, 100,
-             new RandomBiasedAI(),
+             new RandomBiasedAI(), 
              new SimpleSqrtEvaluationFunction3(), utt);
     }
 
@@ -110,22 +113,22 @@ public class MonteCarlo extends AIWithComputationBudget implements Interruptible
         this.utt = utt;
         this.moveGenerator = new PlayerAbstractActionGenerator(utt);
     }
-
-
+    
+    
     public void printStats() {
         if (total_cycles_executed>0 && total_actions_issued>0) {
             System.out.println("Average runs per cycle: " + ((double)total_runs)/total_cycles_executed);
             System.out.println("Average runs per action: " + ((double)total_runs)/total_actions_issued);
         }
     }
-
+    
     public void reset() {
         moveGenerator = null;
         actions = null;
         gs_to_start_from = null;
         run = 0;
-    }
-
+    }    
+    
     public AI clone() {
         return new MonteCarlo(TIME_BUDGET, ITERATIONS_BUDGET, MAXSIMULATIONTIME, MAXACTIONS, randomAI, ef, utt);
     }
@@ -159,8 +162,8 @@ public class MonteCarlo extends AIWithComputationBudget implements Interruptible
 
         } else {
             //Nothing to do: empty player action
-            return new PlayerAction();
-        }
+            return new PlayerAction();        
+        }       
     }
 
     /**
@@ -179,9 +182,9 @@ public class MonteCarlo extends AIWithComputationBudget implements Interruptible
         choicesThisCycle = moveGenerator.reset(gs, playerForThisComputation);
         if(choicesThisCycle)
             moveGenerator.randomizeOrder();
-    }
-
-
+    }    
+    
+    
     public void resetSearch() {
         gs_to_start_from = null;
         moveGenerator = null;

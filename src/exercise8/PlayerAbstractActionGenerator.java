@@ -110,12 +110,6 @@ public class PlayerAbstractActionGenerator extends AbstractionLayerAI{
 
         //This shouldn't happen. If I have no units, I should've lost, and all units should have NONE as a possible action
         if (choices.size() != 0) {
-//            System.err.println("Problematic game state:");
-//            System.err.println(a_gs);
-//            throw new Exception(
-//                    "Move generator for player " + pID + " created with no units that can execute actions! (status: "
-//                            + a_gs.canExecuteAnyAction(0) + ", " + a_gs.canExecuteAnyAction(1) + ")"
-//            );
             //We compute the number of possible actions per unit, plus another array to select a current choice for each one of them
             choiceSizes = new int[choices.size()];
             currentChoice = new int[choices.size()];
@@ -165,10 +159,10 @@ public class PlayerAbstractActionGenerator extends AbstractionLayerAI{
             HarvestSingle h = actBuilder.harvestAction(gs, u);
             if (h != null) actions.add(h);
 
-//            Attack att = actBuilder.attackBehaviour(gs, u);
+//            Attack att = actBuilder.meleeUnitBehavior(gs, u);
 //            if (att != null) actions.add(att);
 
-//            ArrayList<HarvestSingle> allHarvest = actBuilder.allHarvestActions(gs, u);
+//            ArrayList<HarvestSingle> allHarvest = actBuilder.allHarvestAction(gs, u);
 //            actions.addAll(allHarvest);
 
             Build b = actBuilder.buildAction(gs, u, barracksType);
@@ -192,9 +186,10 @@ public class PlayerAbstractActionGenerator extends AbstractionLayerAI{
             t = actBuilder.trainAction(gs, u, rangedType);
             if (t != null) actions.add(t);
 
-        } else if(u.getType() == lightType || u.getType()==heavyType || u.getType()==rangedType)
+        }else if(u.getType() == lightType || u.getType() == heavyType || u.getType() == rangedType)
         {
-            Attack att = actBuilder.attackBehaviour(gs, u);
+            // ATTACK
+            Attack att = actBuilder.meleeUnitBehavior(gs, u);
             if (att != null) actions.add(att);
         }
 
