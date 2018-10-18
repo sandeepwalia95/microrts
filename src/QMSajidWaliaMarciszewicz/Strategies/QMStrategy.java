@@ -7,23 +7,11 @@ import rts.units.UnitTypeTable;
 
 public abstract class QMStrategy {
     abstract public PlayerAction execute(int player, GameState gs, UnitTypeTable utt, PathFinding pf) throws Exception;
+    abstract public QMStrategy clone();
 
 
 
     //------------------------------LEFTOVER FROM QMStrategy CLASS--------------------------------------
-
-            /*
-        //getting my units
-        if(gs.canExecuteAnyAction(player))
-        {
-            for(Unit u : gs.getUnits())
-            {
-                if(u.getPlayer() == player)
-                    ;
-            }
-        }
-        */
-
 
     /**
      * Computes the Manhattan distance between two units.
