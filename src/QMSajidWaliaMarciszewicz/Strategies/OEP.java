@@ -7,6 +7,8 @@ import rts.units.UnitTypeTable;
 import util.Pair;
 
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.PriorityQueue;
 
 public class OEP extends QMStrategy {
 
@@ -18,17 +20,29 @@ public class OEP extends QMStrategy {
     private int _kparents=0;
 
     public class Population{
-        ArrayList<Genome> individuals; //maybe better if some priority queue not just simple list
+        PriorityQueue<Genome> individuals; //maybe better if some priority queue not just simple list
     }
 
-    public class Genome{
+    public class Genome implements Comparable<Genome>{
         int ID;
         PlayerAction[] genes;
         GameState phenotype;
         float fitness; //result of fitness function/ evaluation of this sequence
+
+        @Override
+        public int compareTo(Genome o) {
+            if(this.fitness > o.fitness) {
+                return 1;
+            } else if (this.fitness < o.fitness) {
+                return -1;
+            } else {
+                return 0;
+            }
+        }
     }
 
     private Population _population;
+
 
 
     public OEP(int timeBudget, int iterationBudget, int populationSize){
@@ -48,6 +62,7 @@ public class OEP extends QMStrategy {
         {
             //1. Initialize the population for t=0
             generatePopulation();
+            repairGenomes();
 
             while(true) {
                 if (TIME_BUDGET>0 && (System.currentTimeMillis() - start)>=TIME_BUDGET) break;
@@ -56,19 +71,19 @@ public class OEP extends QMStrategy {
                 //2. Evaluate population
                 evaluatePopulation();
                 //3. Select k individuals for the new population (remove the ones with lowest fitness)
-                ArrayList<Genome> parents = selectParents(_kparents);
+                PriorityQueue<Genome> parents = selectParents(_kparents);
                 //4. Create pairs from selected individuals
                 ArrayList<Pair<Genome,Genome>> couples = pairIndividuals(parents);
                 //5. Crossover
                 ArrayList<Genome> kids = crossover(couples);
                 //5a. repair
-                repairGenomes();
+                kids = repairGenomes(kids);
                 //6. Mutate newly created individuals.
                 kids = mutation(kids);
                 //6a. repair
-                repairGenomes();
+                kids = repairGenomes(kids);
                 //7. Create population for t+1
-                _population.individuals = parents;
+                _population.individuals = new PriorityQueue<>(parents);
                 _population.individuals.addAll(kids);
 
                 nruns++;
@@ -86,7 +101,7 @@ public class OEP extends QMStrategy {
         }
 
 
-        return null;
+        return bestIndividual();
     }
 
 
@@ -107,13 +122,13 @@ public class OEP extends QMStrategy {
 
     }
 
-    ArrayList<Genome> selectParents(int k)
+    PriorityQueue<Genome> selectParents(int k)
     {
         //return list of k parents selected from the population
-        return new ArrayList<>();
+        return new PriorityQueue<>();
     }
 
-    ArrayList<Pair<Genome,Genome>> pairIndividuals(ArrayList<Genome> parents)
+    ArrayList<Pair<Genome,Genome>> pairIndividuals(PriorityQueue<Genome> parents)
     {
         //pick right number of parents from the parameter list and make pairs using roullete or tournaments
         return new ArrayList<>();
@@ -133,6 +148,15 @@ public class OEP extends QMStrategy {
         }
     }
 
+    ArrayList<Genome> repairGenomes(ArrayList<Genome> genomes)
+    {
+        for(Genome g:genomes)
+        {
+            //check if sequence is correct, if its wrong fix the genome
+        }
+        return new ArrayList<>();
+    }
+
     ArrayList<Genome> mutation(ArrayList<Genome> individuals)
     {
         ArrayList<Genome> mutatedIndividuals = new ArrayList<>();
@@ -148,6 +172,13 @@ public class OEP extends QMStrategy {
         //perform mutation on genome and return it
         return genome;
     }
+
+    PlayerAction bestIndividual()
+    {
+        //evaluate the population and pick the best individual to be returned as a result of the analysis
+        return new PlayerAction();
+    }
+
 
     @Override
     public QMStrategy clone() {
