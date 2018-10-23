@@ -23,9 +23,9 @@ public class OEP extends QMStrategy {
 
     public class Genome{
         int ID;
-        PlayerAction[] genes;
-        GameState phenotype;
-        float fitness; //result of fitness function/ evaluation of this sequence
+        PlayerAction genes;// list of action for each unit
+        GameState phenotype;//rolled forward gamestate , at the end(or whatever) of the genotype's longest action
+        float fitness; //result of fitness function/ evaluation of this sequence // evaluated by SimpleSqrtEvaluationFunction3
     }
 
     private Population _population;
@@ -99,7 +99,11 @@ public class OEP extends QMStrategy {
     }
 
     void evaluatePopulation()
+
     {
+        //SimpleSqrtEvaluationFunction3 can be used
+        //each genome has an array of playerActions called genes
+        // one element in _population.individuals is a genome
         for(Genome g:_population.individuals)
         {
             //evaluate the sequence of playeractions
@@ -127,7 +131,13 @@ public class OEP extends QMStrategy {
 
     void repairGenomes()
     {
-        for(Genome g:_population.individuals)
+        // integritycheck
+        // issuesafe
+        //isUnitActionAllowed
+        //takes the actions in a current turn
+
+        // for(Genome g:_population.individuals)
+        for ()
         {
             //check if sequence is correct, if its wrong fix the genome
         }
