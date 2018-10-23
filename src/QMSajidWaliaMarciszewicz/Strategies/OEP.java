@@ -10,10 +10,7 @@ import rts.units.Unit;
 import rts.units.UnitTypeTable;
 import util.Pair;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.PriorityQueue;
+import java.util.*;
 
 public class OEP extends QMStrategy {
 
@@ -84,7 +81,7 @@ public class OEP extends QMStrategy {
                     if (ITERATIONS_BUDGET>0 && nruns>=ITERATIONS_BUDGET) break;
 
                     //2. Evaluate population
-                    evaluatePopulation();
+                    evaluatePopulation(gs);
                     //3. Select k individuals for the new population (remove the ones with lowest fitness)
                     PriorityQueue<Genome> parents = selectParents(_kparents);
                     //4. Create pairs from selected individuals
@@ -113,7 +110,7 @@ public class OEP extends QMStrategy {
         return bestIndividual();
     }
 
-    int findPopulationSize(GameState gs)
+    private int findPopulationSize(GameState gs)
     {
         int n =1;
 
@@ -127,7 +124,7 @@ public class OEP extends QMStrategy {
         return n<_populationSize?n:_populationSize;
     }
 
-    boolean generatePopulation(GameState gs) throws Exception
+    private boolean generatePopulation(GameState gs) throws Exception
     {
         boolean choicesThisCycle = genomesGenerator.reset(gs, _playerID);
 
@@ -142,19 +139,21 @@ public class OEP extends QMStrategy {
             Genome newGenome = new Genome();
             newGenome.ID = idGenerator;
             idGenerator++;
-            
+
             newGenome.genes = genomesGenerator.getRandom(newGenome.abstractActions);
-            newGenome.phenotype = gs.cloneIssue(newGenome.genes); //shouldnt I clone the gs?---------ASK
             _population.individuals.add(newGenome);
         }
         return true; //there are some available actions for this player
     }
 
-    void evaluatePopulation()
+    void evaluatePopulation(GameState gs)
     {
         for(Genome g:_population.individuals)
         {
+            //fill in phenotype feature
+            g.phenotype = gs.cloneIssue(g.genes); //shouldnt I clone the gs?---------ASK
             //evaluate the sequence of playeractions
+
         }
 
     }
@@ -171,10 +170,65 @@ public class OEP extends QMStrategy {
         return new ArrayList<>();
     }
 
+    Genome uniformCrossover(Pair<Genome,Genome> parents)
+    {
+        Random r = new Random();
+        Genome kid = new Genome();
+        kid.ID = idGenerator;
+        idGenerator++;
+
+        /*PlayerAction genesSequence = new PlayerAction();
+        parents.m_b.genes.getActions()
+        for(Pair<Unit,UnitAction> gene:)
+
+
+            kid.genes = genesSequence;*/
+        return kid;
+    }
+
+    Genome singlePointCrossover(Pair<Genome,Genome> parents)
+    {
+        Random r = new Random();
+        Genome kid = new Genome();
+        kid.ID = idGenerator;
+        idGenerator++;
+
+        /*PlayerAction genesSequence = new PlayerAction();
+        parents.m_b.genes.getActions()
+        for(Pair<Unit,UnitAction> gene:)
+
+
+            kid.genes = genesSequence;*/
+        return kid;
+    }
+
+    Genome nPointsCrossover(Pair<Genome,Genome> parents)
+    {
+        Random r = new Random();
+        Genome kid = new Genome();
+        kid.ID = idGenerator;
+        idGenerator++;
+
+        /*PlayerAction genesSequence = new PlayerAction();
+        parents.m_b.genes.getActions()
+        for(Pair<Unit,UnitAction> gene:)
+
+
+            kid.genes = genesSequence;*/
+        return kid;
+    }
+
     ArrayList<Genome> crossover(ArrayList<Pair<Genome,Genome>> couples)
     {
         //perform crossover on given pairs
-        return new ArrayList<>();
+        ArrayList<Genome> kids = new ArrayList<>();
+
+        for(Pair<Genome,Genome> parents: couples)
+        {
+            kids.add(uniformCrossover(parents));
+        }
+
+        return kids;
     }
 
     void repairGenomes()
