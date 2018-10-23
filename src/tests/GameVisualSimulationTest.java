@@ -15,6 +15,8 @@ import rts.PhysicalGameState;
 import rts.PlayerAction;
 import rts.units.UnitTypeTable;
 
+import java.util.ArrayList;
+
 /**
  * @author santi
  */

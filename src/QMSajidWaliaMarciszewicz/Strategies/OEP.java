@@ -3,6 +3,7 @@ package QMSajidWaliaMarciszewicz.Strategies;
 import ai.abstraction.AbstractAction;
 import ai.abstraction.pathfinding.PathFinding;
 import exercise8.PlayerAbstractActionGenerator;
+import org.apache.commons.compress.archivers.ar.ArArchiveEntry;
 import rts.GameState;
 import rts.PlayerAction;
 import rts.UnitAction;
@@ -170,62 +171,19 @@ public class OEP extends QMStrategy {
         return new ArrayList<>();
     }
 
-    Genome uniformCrossover(Pair<Genome,Genome> parents)
-    {
-        Random r = new Random();
-        Genome kid = new Genome();
-        kid.ID = idGenerator;
-        idGenerator++;
-
-        /*PlayerAction genesSequence = new PlayerAction();
-        parents.m_b.genes.getActions()
-        for(Pair<Unit,UnitAction> gene:)
-
-
-            kid.genes = genesSequence;*/
-        return kid;
-    }
-
-    Genome singlePointCrossover(Pair<Genome,Genome> parents)
-    {
-        Random r = new Random();
-        Genome kid = new Genome();
-        kid.ID = idGenerator;
-        idGenerator++;
-
-        /*PlayerAction genesSequence = new PlayerAction();
-        parents.m_b.genes.getActions()
-        for(Pair<Unit,UnitAction> gene:)
-
-
-            kid.genes = genesSequence;*/
-        return kid;
-    }
-
-    Genome nPointsCrossover(Pair<Genome,Genome> parents)
-    {
-        Random r = new Random();
-        Genome kid = new Genome();
-        kid.ID = idGenerator;
-        idGenerator++;
-
-        /*PlayerAction genesSequence = new PlayerAction();
-        parents.m_b.genes.getActions()
-        for(Pair<Unit,UnitAction> gene:)
-
-
-            kid.genes = genesSequence;*/
-        return kid;
-    }
-
     ArrayList<Genome> crossover(ArrayList<Pair<Genome,Genome>> couples)
     {
         //perform crossover on given pairs
         ArrayList<Genome> kids = new ArrayList<>();
+        Crossover crossover = new Crossover();
 
         for(Pair<Genome,Genome> parents: couples)
         {
-            kids.add(uniformCrossover(parents));
+            Genome kid = new Genome();
+            kid.ID = idGenerator;
+            idGenerator++;
+            kid.genes = crossover.uniformCrossover(parents);
+            kids.add(kid);
         }
 
         return kids;
