@@ -8,7 +8,7 @@ import java.util.Random;
 
 public class Crossover {
 
-    Random r;
+    private Random r;
 
     public Crossover()
     {

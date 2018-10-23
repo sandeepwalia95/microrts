@@ -59,6 +59,7 @@ public class OEP extends QMStrategy {
         this.ITERATIONS_BUDGET = iterationBudget;
         this._populationSize = populationSize;
         this._lookahead = lookahead;
+        this._population = new Population();
     }
 
     @Override
