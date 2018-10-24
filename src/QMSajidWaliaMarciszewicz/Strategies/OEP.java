@@ -11,6 +11,7 @@ import rts.UnitAction;
 import rts.units.UnitTypeTable;
 import util.Pair;
 
+import java.lang.reflect.GenericArrayType;
 import java.util.*;
 
 public class OEP extends QMStrategy {
@@ -187,7 +188,11 @@ public class OEP extends QMStrategy {
     ArrayList<Pair<Genome,Genome>> pairIndividuals(PriorityQueue<Genome> parents)
     {
         //pick right number of parents from the parameter list and make pairs using roullete or tournaments
-        return new ArrayList<>();
+        ArrayList <Pair<Genome,Genome>> pairs = new ArrayList<>();
+        for(int i = 0; i < parents.size(); i+=2) {
+            pairs.add(new Pair <>(parents.poll(),parents.poll()));
+        }
+        return pairs;
     }
 
     ArrayList<Genome> crossover(ArrayList<Pair<Genome,Genome>> couples)
