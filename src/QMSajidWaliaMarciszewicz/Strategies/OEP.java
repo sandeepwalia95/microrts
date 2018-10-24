@@ -2,10 +2,12 @@ package QMSajidWaliaMarciszewicz.Strategies;
 
 import ai.abstraction.AbstractAction;
 import ai.abstraction.pathfinding.PathFinding;
+import ai.evaluation.SimpleSqrtEvaluationFunction3;
 import exercise8.PlayerAbstractActionGenerator;
 import rts.*;
 import org.apache.commons.compress.archivers.ar.ArArchiveEntry;
 import rts.units.Unit;
+import rts.UnitAction;
 import rts.units.UnitTypeTable;
 import util.Pair;
 
@@ -155,8 +157,17 @@ public class OEP extends QMStrategy {
             //fill in phenotype feature
             g.phenotype = gs.cloneIssue(g.genes); //shouldnt I clone the gs?---------ASK
             //evaluate the sequence of playeractions
-
-
+            int maxTime = 0;
+            for (Pair <Unit,UnitAction> uaa:g.genes.getActions())
+            {
+                if(uaa.m_b.ETA(uaa.m_a)>maxTime)
+                    maxTime = uaa.m_b.ETA(uaa.m_a);
+            }
+            for (int i = 0; i < maxTime; i++) {
+                g.phenotype.cycle();
+            }
+            g.phenotype.cycle();
+            g.fitness = new SimpleSqrtEvaluationFunction3().base_score(_playerID,g.phenotype);
         }
 
     }
