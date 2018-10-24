@@ -12,6 +12,7 @@ import rts.units.UnitTypeTable;
 import util.Pair;
 
 import java.lang.reflect.GenericArrayType;
+
 import java.util.*;
 
 public class OEP extends QMStrategy {
@@ -27,6 +28,7 @@ public class OEP extends QMStrategy {
     //parameter used for selection of parents for new generation
     private int _kparents=0;
     private int _lookahead; //how far in future are we looking/ how long is the genome
+    private int _numMutations = 1;
 
     public class Population{
         PriorityQueue<Genome> individuals; //maybe better if some priority queue not just simple list
@@ -94,7 +96,7 @@ public class OEP extends QMStrategy {
                     //5a. repair
                     kids = repairGenomes(kids, gs);
                     //6. Mutate newly created individuals.
-                    kids = mutation(kids);
+                    kids = mutation(kids, _numMutations, gs);
                     //6a. repair
                     kids = repairGenomes(kids, gs);
                     //7. Create population for t+1
@@ -260,13 +262,46 @@ public class OEP extends QMStrategy {
         }        return genomes;
     }
 
-    ArrayList<Genome> mutation(ArrayList<Genome> individuals)
+    ArrayList<Genome> mutation(ArrayList<Genome> individuals, int numMutations, GameState gs)
     {
         ArrayList<Genome> mutatedIndividuals = new ArrayList<>();
-        for (Genome g:individuals)
+
+        for (Genome g : individuals)
         {
-            mutatedIndividuals.add(mutate(g));
+
+            for (int i = 0; i <= numMutations; i++)
+            {
+                // Pick a random number to select a random gene
+                int picked = new Random().nextInt(g.genes.getActions().size());
+
+                // picks a random gene from the genome
+                Pair<Unit, UnitAction> genePicked = g.genes.getActions().get(picked);
+
+                // Extract unit from the gene
+                Unit unit = genePicked.m_a;
+
+                // If we want to ensure that the same action is not picked again
+                UnitAction ua = genePicked.m_b;
+
+                // All possible actions for the unit
+                List<UnitAction> listOfActions = unit.getUnitActions(gs);
+
+                // Remove the action that is already set from the list so that it is not picked again
+                listOfActions.remove(ua);
+
+                // Select a random action from the units possible actions
+                UnitAction newUnitAction = listOfActions.get(new Random().nextInt(listOfActions.size()));
+
+                // Set new action to the gene
+                genePicked.m_b = newUnitAction;
+
+                // Update the gene within the genome
+                g.genes.getActions().set(picked, genePicked);
+
+                mutatedIndividuals.add(g);
+            }
         }
+
         return mutatedIndividuals;
     }
 
