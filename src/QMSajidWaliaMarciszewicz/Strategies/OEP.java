@@ -3,9 +3,7 @@ package QMSajidWaliaMarciszewicz.Strategies;
 import ai.abstraction.AbstractAction;
 import ai.abstraction.pathfinding.PathFinding;
 import exercise8.PlayerAbstractActionGenerator;
-import rts.GameState;
-import rts.PlayerAction;
-import rts.UnitAction;
+import rts.*;
 import rts.units.Unit;
 import rts.units.UnitTypeTable;
 import util.Pair;
@@ -27,7 +25,8 @@ public class OEP extends QMStrategy {
     private int _lookahead; //how far in future are we looking/ how long is the genome
 
     public class Population{
-        PriorityQueue<Genome> individuals; //maybe better if some priority queue not just simple list
+//        PriorityQueue<Genome> individuals; //maybe better if some priority queue not just simple list
+        ArrayList<Genome> individuals;
     }
 
     public class Genome implements Comparable<Genome>{
@@ -74,7 +73,7 @@ public class OEP extends QMStrategy {
             //1. Initialize the population for t=0
             if(generatePopulation(gs))
             {
-                repairGenomes();
+                repairGenomes(gs);//pass something here too
 
                 while(true) {
                     if (TIME_BUDGET>0 && (System.currentTimeMillis() - start)>=TIME_BUDGET) break;
@@ -87,15 +86,16 @@ public class OEP extends QMStrategy {
                     //4. Create pairs from selected individuals
                     ArrayList<Pair<Genome,Genome>> couples = pairIndividuals(parents);
                     //5. Crossover
-                    ArrayList<Genome> kids = crossover(couples);
+                    ArrayList<Genome> kids = crossover(couples);//kids' datatype should be same as population
                     //5a. repair
-                    kids = repairGenomes(kids);
+                    kids = repairGenomes(kids, gs);
                     //6. Mutate newly created individuals.
                     kids = mutation(kids);
                     //6a. repair
-                    kids = repairGenomes(kids);
+                    kids = repairGenomes(kids, gs);
                     //7. Create population for t+1
-                    _population.individuals = new PriorityQueue<>(parents);
+//                    _population.individuals = new PriorityQueue<>(parents);
+                    _population.individuals = new ArrayList<>(parents);
                     _population.individuals.addAll(kids);
 
                     nruns++;
@@ -153,6 +153,7 @@ public class OEP extends QMStrategy {
             //fill in phenotype feature
             g.phenotype = gs.cloneIssue(g.genes); //shouldnt I clone the gs?---------ASK
             //evaluate the sequence of playeractions
+
 
         }
 
@@ -231,21 +232,47 @@ public class OEP extends QMStrategy {
         return kids;
     }
 
-    void repairGenomes()
+    void repairGenomes(GameState gs)
     {
-        for(Genome g:_population.individuals)
-        {
-            //check if sequence is correct, if its wrong fix the genome
-        }
+        repairGenomes(_population.individuals, gs);
+
     }
 
-    ArrayList<Genome> repairGenomes(ArrayList<Genome> genomes)
+    ArrayList<Genome> repairGenomes(ArrayList<Genome> genomes, GameState gs)
     {
+        PhysicalGameState pgs = gs.getPhysicalGameState();
+
         for(Genome g:genomes)
         {
-            //check if sequence is correct, if its wrong fix the genome
-        }
-        return new ArrayList<>();
+            for (Pair<Unit, UnitAction> uua : g.genes.getActions())
+            {
+                ResourceUsage ru = uua.m_b.resourceUsage(uua.m_a, pgs);
+                if (!(!g.genes.consistentWith(ru, gs) || uua.m_a.canExecuteAction(uua.m_b, gs)))//Legality checks
+                {
+                    List<Pair<Unit,List<AbstractAction>>> choices =  genomesGenerator.getChoices();
+                    Random r = new Random();
+
+                    //copying over to get random action assigned to that unit
+                    for (Pair<Unit, List<AbstractAction>> unitChoices : choices)
+                    {
+                        if (unitChoices.m_a == uua.m_a)
+                        {
+                            List<AbstractAction> l = new LinkedList<AbstractAction>();
+                            l.addAll(unitChoices.m_b);
+                            AbstractAction aa = l.remove(r.nextInt(l.size()));
+                            GameState gsCopy = gs.clone();
+                            UnitAction ua = aa.execute(gsCopy);
+                            ResourceUsage r2 = ua.resourceUsage(unitChoices.m_a, pgs);
+
+                            if (g.genes.getResourceUsage().consistentWith(r2, gs)) {
+                                g.genes.getResourceUsage().merge(r2);
+                                g.genes.addUnitAction(unitChoices.m_a, ua);
+                            }
+                        }
+                    }
+                }
+            }
+        }        return genomes;
     }
 
     ArrayList<Genome> mutation(ArrayList<Genome> individuals)
