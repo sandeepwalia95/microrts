@@ -28,8 +28,7 @@ public class OEP extends QMStrategy {
     private int _lookahead; //how far in future are we looking/ how long is the genome
 
     public class Population{
-//        PriorityQueue<Genome> individuals; //maybe better if some priority queue not just simple list
-        ArrayList<Genome> individuals;
+        PriorityQueue<Genome> individuals; //maybe better if some priority queue not just simple list
     }
 
     public class Genome implements Comparable<Genome>{
@@ -98,8 +97,7 @@ public class OEP extends QMStrategy {
                     //6a. repair
                     kids = repairGenomes(kids, gs);
                     //7. Create population for t+1
-//                    _population.individuals = new PriorityQueue<>(parents);
-                    _population.individuals = new ArrayList<>(parents);
+                    _population.individuals = new PriorityQueue<>(parents);
                     _population.individuals.addAll(kids);
 
                     nruns++;
@@ -175,7 +173,15 @@ public class OEP extends QMStrategy {
     PriorityQueue<Genome> selectParents(int k)
     {
         //return list of k parents selected from the population
-        return new PriorityQueue<>();
+
+        PriorityQueue<Genome> parents = new PriorityQueue<>();
+        for (int i = 0; i < (2/3*_population.individuals.size());i++)
+        {
+            parents.add(_population.individuals.poll());
+            parents.add(_population.individuals.poll());
+
+        }
+        return parents;
     }
 
     ArrayList<Pair<Genome,Genome>> pairIndividuals(PriorityQueue<Genome> parents)
@@ -204,7 +210,11 @@ public class OEP extends QMStrategy {
 
     void repairGenomes(GameState gs)
     {
-        repairGenomes(_population.individuals, gs);
+        ArrayList <Genome> l = new ArrayList(_population.individuals);
+        repairGenomes(l, gs);
+        _population.individuals = new PriorityQueue<>();
+        _population.individuals.addAll(l);
+        //Hack. Get this fixed. Either repeat the whole function, or change to consistent array list / pq usage
 
     }
 
