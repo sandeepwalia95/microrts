@@ -32,6 +32,11 @@ public class OEP extends QMStrategy {
 
     public class Population{
         PriorityQueue<Genome> individuals; //maybe better if some priority queue not just simple list
+
+        public Population()
+        {
+            individuals = new PriorityQueue<>();
+        }
     }
 
     public class Genome implements Comparable<Genome>{
