@@ -10,6 +10,7 @@ import rts.units.UnitType;
 import rts.units.UnitTypeTable;
 import util.Pair;
 
+
 import java.util.*;
 
 public class PlayerAbstractActionGenerator extends AbstractionLayerAI{
@@ -336,18 +337,20 @@ public class PlayerAbstractActionGenerator extends AbstractionLayerAI{
 
             boolean consistent = false;
             do {
+
                 AbstractAction aa = l.remove(r.nextInt(l.size()));
 
                 GameState gsCopy = gameState.clone();
                 UnitAction ua = aa.execute(gsCopy);
 
-                ResourceUsage r2 = ua.resourceUsage(u, physicalGameState);
-
-                if (pa.getResourceUsage().consistentWith(r2, gameState)) {
-                    pa.getResourceUsage().merge(r2);
-                    pa.addUnitAction(u, ua);
-                    consistent = true;
-                    _abs.put(u,aa);
+                if( ua != null) {
+                    ResourceUsage r2 = ua.resourceUsage(u, physicalGameState);
+                    if (pa.getResourceUsage().consistentWith(r2, gameState)) {
+                        pa.getResourceUsage().merge(r2);
+                        pa.addUnitAction(u, ua);
+                        consistent = true;
+                        _abs.put(u, aa);
+                    }
                 }
             } while (!consistent);
         }

@@ -37,17 +37,17 @@ public class GameVisualSimulationTest {
 
         //AI ai1 = new WorkerRush(utt);
         AI ai1 = new QMSajidWaliaMarciszewicz(TIME_BUDGET, -1, utt, new BFSPathFinding());
-        AI ai2 = new RandomBiasedAI();
+        //AI ai1 = new RandomBiasedAI();
 
 //        AI ai1 = new mc.MonteCarlo(100, -1, 100, 1000,
 //                new RandomBiasedAI(), new SimpleSqrtEvaluationFunction3());
-//        AI ai2 = new mc.MonteCarlo(100, -1, 100, 1000,
+  //     AI ai2 = new mc.MonteCarlo(100, -1, 100, 1000,
 //                new RandomAI(), new SimpleSqrtEvaluationFunction3());
 
 
-//        AI ai1 = new exercise8.MonteCarlo(100, -1, 10, 1000,
-//                new RandomBiasedAI(), new SimpleSqrtEvaluationFunction3(), utt);
-//        AI ai2 = new mc.MonteCarlo(100, -1, 10, 1000,
+        AI ai2 = new exercise8.MonteCarlo(100, -1, 10, 1000,
+                new RandomBiasedAI(), new SimpleSqrtEvaluationFunction3(), utt);
+//      AI ai2 = new mc.MonteCarlo(100, -1, 10, 1000,
 //                new RandomAI(), new SimpleSqrtEvaluationFunction3());
 
 

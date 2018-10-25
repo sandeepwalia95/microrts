@@ -1,6 +1,7 @@
 package QMSajidWaliaMarciszewicz;
 
 import QMSajidWaliaMarciszewicz.Strategies.MonteCarloSearch;
+import QMSajidWaliaMarciszewicz.Strategies.OEP;
 import ai.RandomAI;
 import ai.abstraction.pathfinding.PathFinding;
 import ai.core.AI;
@@ -79,9 +80,11 @@ public class QMSajidWaliaMarciszewicz extends AIWithComputationBudget {
         _playerID = player;
 
         //place for solutions(strategies) created on the basis of pregame analysis
-
-        return new MonteCarloSearch(TIME_BUDGET,ITERATIONS_BUDGET,100,1000,new RandomAI(), new SimpleSqrtEvaluationFunction3())
+        return new OEP(TIME_BUDGET,ITERATIONS_BUDGET,100,1000)
                 .execute(player,gs,_utt,_pathFinding);
+
+        //return new MonteCarloSearch(TIME_BUDGET,ITERATIONS_BUDGET,100,1000,new RandomAI(), new SimpleSqrtEvaluationFunction3())
+        //        .execute(player,gs,_utt,_pathFinding);
     }
 
     /**
