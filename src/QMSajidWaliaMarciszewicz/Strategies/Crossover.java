@@ -1,6 +1,8 @@
 package QMSajidWaliaMarciszewicz.Strategies;
 
 import rts.PlayerAction;
+import rts.UnitAction;
+import rts.units.Unit;
 import util.Pair;
 
 import java.util.ArrayList;
@@ -21,15 +23,24 @@ public class Crossover {
         PlayerAction genesSequence2 = new PlayerAction();
         for(int i=0;i<parents.m_b.genes.getActions().size();i++)
         {
+            //take the unit from the position i
+            Unit u = parents.m_a.genes.getActions().get(i).m_a;
+            UnitAction action1;
+            UnitAction action2;
+
             //parent A
             if(r.nextInt(20)>10) {
-                genesSequence1.addUnitAction(parents.m_a.genes.getActions().get(i).m_a, parents.m_a.genes.getActions().get(i).m_b);
-                genesSequence2.addUnitAction(parents.m_b.genes.getActions().get(i).m_a, parents.m_b.genes.getActions().get(i).m_b);
+                action1 = parents.m_a.genes.getAction(u);             //parent A
+                action2 = parents.m_b.genes.getAction(u);             //parent A
             }
             else {   //parent B
-                genesSequence1.addUnitAction(parents.m_b.genes.getActions().get(i).m_a, parents.m_b.genes.getActions().get(i).m_b);
-                genesSequence2.addUnitAction(parents.m_a.genes.getActions().get(i).m_a, parents.m_a.genes.getActions().get(i).m_b);
+                action1 = parents.m_b.genes.getAction(u);             //parent A
+                action2 = parents.m_a.genes.getAction(u);             //parent A
             }
+
+            //add new pair to the genes sequence (PlayerAction)
+            genesSequence1.addUnitAction(u,action1);
+            genesSequence2.addUnitAction(u,action2);
         }
 
         ArrayList<PlayerAction> kidsGenes  = new ArrayList<PlayerAction>();
@@ -45,15 +56,25 @@ public class Crossover {
         PlayerAction genesSequence2 = new PlayerAction();
         for(int i=0;i<parents.m_b.genes.getActions().size();i++)
         {
+            //take the unit from the position i
+            Unit u = parents.m_a.genes.getActions().get(i).m_a;
+            UnitAction action1;
+            UnitAction action2;
+
             //parent A
             if(i<position){
-                genesSequence1.addUnitAction(parents.m_a.genes.getActions().get(i).m_a, parents.m_a.genes.getActions().get(i).m_b);
-                genesSequence2.addUnitAction(parents.m_b.genes.getActions().get(i).m_a, parents.m_b.genes.getActions().get(i).m_b);
+                action1 = parents.m_a.genes.getAction(u);             //parent A
+                action2 = parents.m_b.genes.getAction(u);             //parent A
             }
             else {  //parent B
-                genesSequence1.addUnitAction(parents.m_b.genes.getActions().get(i).m_a, parents.m_b.genes.getActions().get(i).m_b);
-                genesSequence2.addUnitAction(parents.m_a.genes.getActions().get(i).m_a, parents.m_a.genes.getActions().get(i).m_b);
+                action1 = parents.m_b.genes.getAction(u);             //parent A
+                action2 = parents.m_a.genes.getAction(u);             //parent A
             }
+
+            //add new pair to the genes sequence (PlayerAction)
+            genesSequence1.addUnitAction(u,action1);
+            genesSequence2.addUnitAction(u,action2);
+
         }
 
         ArrayList<PlayerAction> kidsGenes  = new ArrayList<PlayerAction>();
@@ -84,15 +105,24 @@ public class Crossover {
             b=pos.m_a;
             for(int i=a;i<b;i++)
             {
+                //take the unit from the position i
+                Unit u = parents.m_a.genes.getActions().get(i).m_a;
+                UnitAction action1;
+                UnitAction action2;
+
                 if(pos.m_b)
                 {
-                    genesSequence1.addUnitAction(parents.m_a.genes.getActions().get(i).m_a, parents.m_a.genes.getActions().get(i).m_b);
-                    genesSequence2.addUnitAction(parents.m_b.genes.getActions().get(i).m_a, parents.m_b.genes.getActions().get(i).m_b);
+                    action1 = parents.m_a.genes.getAction(u);             //parent A
+                    action2 = parents.m_b.genes.getAction(u);             //parent A
                 }
                 else  {  //parent B
-                    genesSequence1.addUnitAction(parents.m_b.genes.getActions().get(i).m_a, parents.m_b.genes.getActions().get(i).m_b);
-                    genesSequence2.addUnitAction(parents.m_a.genes.getActions().get(i).m_a, parents.m_a.genes.getActions().get(i).m_b);
+                    action1 = parents.m_b.genes.getAction(u);             //parent A
+                    action2 = parents.m_a.genes.getAction(u);             //parent A
                 }
+
+                //add new pair to the genes sequence (PlayerAction)
+                genesSequence1.addUnitAction(u,action1);
+                genesSequence2.addUnitAction(u,action2);
             }
         }
 
@@ -107,13 +137,20 @@ public class Crossover {
 
         PlayerAction genesSequence = new PlayerAction();
 
-        for(int i=0;i<parents.m_b.genes.getActions().size();i++)
+        for(int i=0;i<parents.m_a.genes.getActions().size();i++)
         {
-            //parent A
+            //take the unit from the position i
+            Unit u = parents.m_a.genes.getActions().get(i).m_a;
+            UnitAction action;
+
+            //take the unitaction
             if(r.nextInt(20)>10)
-                genesSequence.addUnitAction(parents.m_a.genes.getActions().get(i).m_a,parents.m_a.genes.getActions().get(i).m_b);
-            else    //parent B
-                genesSequence.addUnitAction(parents.m_b.genes.getActions().get(i).m_a,parents.m_b.genes.getActions().get(i).m_b);
+                action = parents.m_a.genes.getAction(u);             //parent A
+            else
+                action = parents.m_b.genes.getAction(u);            //parent B
+
+            //add new pair to the genes sequence (PlayerAction)
+            genesSequence.addUnitAction(u,action);
         }
 
         return genesSequence;
@@ -127,11 +164,18 @@ public class Crossover {
         PlayerAction genesSequence = new PlayerAction();
         for(int i=0;i<parents.m_b.genes.getActions().size();i++)
         {
+            //take the unit from the position i
+            Unit u = parents.m_a.genes.getActions().get(i).m_a;
+            UnitAction action;
+
             //parent A
             if(i<position)
-                genesSequence.addUnitAction(parents.m_a.genes.getActions().get(i).m_a,parents.m_a.genes.getActions().get(i).m_b);
+                action = parents.m_a.genes.getAction(u);
             else    //parent B
-                genesSequence.addUnitAction(parents.m_b.genes.getActions().get(i).m_a,parents.m_b.genes.getActions().get(i).m_b);
+                action = parents.m_b.genes.getAction(u);
+
+            //add new pair to the genes sequence (PlayerAction)
+            genesSequence.addUnitAction(u,action);
         }
 
         return genesSequence;
@@ -161,10 +205,17 @@ public class Crossover {
             b=pos.m_a;
             for(int i=a;i<b;i++)
             {
+                //take the unit from the position i
+                Unit u = parents.m_a.genes.getActions().get(i).m_a;
+                UnitAction action;
+
                 if(pos.m_b)
-                    genesSequence.addUnitAction(parents.m_a.genes.getActions().get(i).m_a,parents.m_a.genes.getActions().get(i).m_b);
+                    action = parents.m_a.genes.getAction(u);
                 else    //parent B
-                    genesSequence.addUnitAction(parents.m_b.genes.getActions().get(i).m_a,parents.m_b.genes.getActions().get(i).m_b);
+                    action = parents.m_b.genes.getAction(u);
+
+                //add new pair to the genes sequence (PlayerAction)
+                genesSequence.addUnitAction(u,action);
             }
         }
 
