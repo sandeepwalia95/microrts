@@ -11,9 +11,10 @@ import rts.UnitAction;
 import rts.units.UnitTypeTable;
 import util.Pair;
 
-import java.lang.reflect.GenericArrayType;
 
 import java.util.*;
+
+import static rts.UnitAction.*;
 
 public class OEP extends QMStrategy {
 

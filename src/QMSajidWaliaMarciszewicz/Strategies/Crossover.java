@@ -6,6 +6,8 @@ import rts.units.Unit;
 import util.Pair;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 public class Crossover {
@@ -14,7 +16,7 @@ public class Crossover {
 
     public Crossover()
     {
-        r= new Random();
+        r= new Random(System.currentTimeMillis());
     }
 
     ArrayList<PlayerAction> uniformCrossover2(Pair<OEP.Genome,OEP.Genome> parents)
@@ -50,7 +52,7 @@ public class Crossover {
 
     ArrayList<PlayerAction> singlePointCrossover2(Pair<OEP.Genome, OEP.Genome> parents)
     {
-        int position = r.nextInt(parents.m_b.genes.getActions().size()); //choose a position at individual at random
+        int position = 1+ r.nextInt(parents.m_b.genes.getActions().size()-1); //choose a position at individual at random
 
         PlayerAction genesSequence1 = new PlayerAction();
         PlayerAction genesSequence2 = new PlayerAction();
@@ -87,22 +89,22 @@ public class Crossover {
         //pick n positions
         //first element of the pair is the position
         //second element of the pair is: true - take gene from parent A, false - take gene from parent B
-        ArrayList<Pair<Integer, Boolean>> positions = new ArrayList<Pair<Integer, Boolean>>();
+        Map<Integer, Boolean> positions = new HashMap<>();
         while(positions.size()<n)
         {
-            int pos = r.nextInt(parents.m_b.genes.getActions().size());
-            if(!positions.contains(pos))
-                positions.add(new Pair<>(pos, r.nextInt(20) > 10));
+            int pos =1+ r.nextInt(parents.m_b.genes.getActions().size()-1);
+            if(!positions.keySet().contains(pos))
+                positions.put(pos, r.nextInt(20) > 10);
         }
-        positions.add(new Pair<>(parents.m_b.genes.getActions().size(), r.nextInt(20) > 10));
+        positions.put(parents.m_b.genes.getActions().size(), r.nextInt(20) > 10);
 
         PlayerAction genesSequence1 = new PlayerAction();
         PlayerAction genesSequence2 = new PlayerAction();
         int a=0,b=0; //boundaries of the section to be moved to a kid
-        for(Pair<Integer, Boolean> pos: positions)
+        for(Integer pos: positions.keySet())
         {
             a=b;
-            b=pos.m_a;
+            b=pos;
             for(int i=a;i<b;i++)
             {
                 //take the unit from the position i
@@ -110,7 +112,7 @@ public class Crossover {
                 UnitAction action1;
                 UnitAction action2;
 
-                if(pos.m_b)
+                if(positions.get(pos))
                 {
                     action1 = parents.m_a.genes.getAction(u);             //parent A
                     action2 = parents.m_b.genes.getAction(u);             //parent A
@@ -159,7 +161,7 @@ public class Crossover {
     PlayerAction singlePointCrossover(Pair<OEP.Genome, OEP.Genome> parents)
     {
         Random r = new Random();
-        int position = r.nextInt(parents.m_b.genes.getActions().size()); //choose a position at individual at random
+        int position = 1+ r.nextInt(parents.m_b.genes.getActions().size()-1); //choose a position at individual at random
 
         PlayerAction genesSequence = new PlayerAction();
         for(int i=0;i<parents.m_b.genes.getActions().size();i++)
@@ -188,28 +190,28 @@ public class Crossover {
         //pick n positions
         //first element of the pair is the position
         //second element of the pair is: true - take gene from parent A, false - take gene from parent B
-        ArrayList<Pair<Integer, Boolean>> positions = new ArrayList<Pair<Integer, Boolean>>();
+        Map<Integer, Boolean> positions = new HashMap<>();
         while(positions.size()<n)
         {
-            int pos = r.nextInt(parents.m_b.genes.getActions().size());
-            if(!positions.contains(pos))
-                positions.add(new Pair<>(pos, r.nextInt(20) > 10));
+            int pos =1+ r.nextInt(parents.m_b.genes.getActions().size()-1);
+            if(!positions.keySet().contains(pos))
+                positions.put(pos, r.nextInt(20) > 10);
         }
-        positions.add(new Pair<>(parents.m_b.genes.getActions().size(), r.nextInt(20) > 10));
+        positions.put(parents.m_b.genes.getActions().size(), r.nextInt(20) > 10);
 
         PlayerAction genesSequence = new PlayerAction();
         int a=0,b=0; //boundaries of the section to be moved to a kid
-        for(Pair<Integer, Boolean> pos: positions)
+        for(Integer pos: positions.keySet())
         {
             a=b;
-            b=pos.m_a;
+            b=pos;
             for(int i=a;i<b;i++)
             {
                 //take the unit from the position i
                 Unit u = parents.m_a.genes.getActions().get(i).m_a;
                 UnitAction action;
 
-                if(pos.m_b)
+                if( positions.get(pos))
                     action = parents.m_a.genes.getAction(u);
                 else    //parent B
                     action = parents.m_b.genes.getAction(u);
