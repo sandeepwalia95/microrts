@@ -84,13 +84,15 @@ public class OEP extends QMStrategy {
         int nruns = 0;
 
 
+
+
         //Only execute an action if the player can execute any.
         if(gs.canExecuteAnyAction(player))
         {
             //1. Initialize the population for t=0
             if(generatePopulation(gs))
             {
-                repairGenomes(gs, pf); // for repairing the randomly generated population
+               // repairGenomes(gs, pf); // for repairing the randomly generated population
 
                 while(true) {
                     if (TIME_BUDGET>0 && (System.currentTimeMillis() - start)>=TIME_BUDGET) break;
@@ -116,7 +118,7 @@ public class OEP extends QMStrategy {
                     kids = mutation(kids, _numMutations, gs);
 
                     //6a. repair
-                    kids = repairGenomes(kids, gs,pf);
+                    //kids = repairGenomes(kids, gs,pf);
 
                     //7. Create population for t+1
                     _population.individuals = new ArrayList<>(parents);
@@ -174,25 +176,44 @@ public class OEP extends QMStrategy {
     {
         for(int index = 0; index < _population.individuals.size(); index++)
         {
-            //instantiate phenotype for this genome
-            _population.individuals.get(index).phenotype = gs.cloneIssue(_population.individuals.get(index).genes); //shouldnt I clone the gs?---------ASK
 
             //evaluate the sequence of playeractions
 
-            //int maxTime = 0;//pick the longest action
-            int minTime = 1000;//pick the shortest action
+            int maxTime = 0;//pick the longest action
+            //int minTime = 1000;//pick the shortest action
 
             //gets the duration for the longest or shortest unit action. Loop has to be modified.
             for (Pair <Unit,UnitAction> uaa:_population.individuals.get(index).genes.getActions())
             {
-                //if(uaa.m_b.ETA(uaa.m_a)>maxTime)
-                if(uaa.m_b.ETA(uaa.m_a)<minTime)
-                    minTime = uaa.m_b.ETA(uaa.m_a);
+                if(uaa.m_b.ETA(uaa.m_a)>maxTime)
+                //if(uaa.m_b.ETA(uaa.m_a)<minTime)
+                    maxTime = uaa.m_b.ETA(uaa.m_a);
             }
 
+            //instantiate phenotype for this genome
+            _population.individuals.get(index).phenotype = gs.clone();
+            _population.individuals.get(index).phenotype.issue(_population.individuals.get(index).genes);
+
+            //Creating variables to be used below
+            UnitActionAssignment uaa;
+
             //Cycle forward by the number of cycles
-            for (int i = 0; i < minTime; i++) {
-                _population.individuals.get(index).phenotype.cycle();
+            for (int i = 0; i < maxTime; i++) {
+                try {
+                    _population.individuals.get(index).phenotype.cycle();
+
+                    //for (int countUA = 0; countUA <_population.individuals.get(index))
+                    //Modify current PA here so that it doesnt issue the same cycle again
+                    //Between cycles check for resource usage
+                    //montecarlo simulate function
+
+                }
+                catch(Exception e)
+                {
+                    _population.individuals.get(index).phenotype.cycle();
+
+                    int a =0;
+                }
             }
 
             //evaluate fitness after the number of cycles
@@ -308,7 +329,7 @@ public class OEP extends QMStrategy {
 
                 //Possibly check here for conflicting positions when adding new units
                 //Check this unitAction's position with every other units in the genome
-                if (uua.m_b.getType() == rts.UnitAction.TYPE_PRODUCE) //produces a unit in the target direction
+               /* if (uua.m_b.getType() == rts.UnitAction.TYPE_PRODUCE) //produces a unit in the target direction
                 {
                     int targetx = uua.m_a.getX();
                     int targety = uua.m_a.getY();
@@ -338,16 +359,20 @@ public class OEP extends QMStrategy {
                         }
                     }
 
+                    // find a new targetx and targety
+                    int newPos = findPosition(gs.getPlayer(_playerID),pgs, 3);
+
                     if(conflictingPos)
                     //if there was a conflict in position for Produce
                     {
-                        UnitAction move = pf.findPathToAdjacentPosition(uua.m_a, targetx+targety*pgs.getWidth(), gs, ru);
+                        //UnitAction move = pf.findPathToAdjacentPosition(uua.m_a, targetx+targety*pgs.getWidth(), gs, ru);
+                        UnitAction move = pf.findPathToAdjacentPosition(uua.m_a,newPos*pgs.getWidth(), gs, ru);
                         //try to set new parameter for unit action???
                         returnedGenomes.get(index).genes.removeUnitAction(uua.m_a,uua.m_b);
                         returnedGenomes.get(index).genes.addUnitAction(uua.m_a, move);
 
                     }
-                }
+                }*/
 
                 if (!(returnedGenomes.get(index).genes.consistentWith(ru, gs)) || !(uua.m_a.canExecuteAction(uua.m_b, gs)) )//Legality checks
                 {
@@ -363,11 +388,16 @@ public class OEP extends QMStrategy {
                                 l.addAll(unitChoices.m_b);
                                 Unit u = unitChoices.m_a;
                                 do {
-
-                                    AbstractAction aa = l.remove(r.nextInt(l.size()));
-
                                     GameState gsCopy = gs.clone();
-                                    UnitAction ua = aa.execute(gsCopy);
+
+                                    AbstractAction aa;
+                                    UnitAction ua;
+
+                                    if(l.size()>0) {
+                                        aa = l.remove(r.nextInt(l.size()));
+                                        ua = aa.execute(gsCopy);
+                                    }
+                                    else ua = new UnitAction(UnitAction.TYPE_NONE);
 
                                     if (ua != null) {
                                         ResourceUsage r2 = ua.resourceUsage(u, pgs);
