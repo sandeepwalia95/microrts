@@ -76,13 +76,13 @@ public class OEP extends QMStrategy {
 
         PathFinding _pf = pf;
         _playerID = player;
-        this.genomesGenerator = new PlayerActionGenerator(gs,_playerID);
         long start = System.currentTimeMillis();
         int nruns = 0;
 
         //Only execute an action if the player can execute any.
         if(gs.canExecuteAnyAction(player))
         {
+            this.genomesGenerator = new PlayerActionGenerator(gs,_playerID);
             //1. Initialize the population for t=0
             if(generatePopulation(gs))
             {
@@ -109,7 +109,7 @@ public class OEP extends QMStrategy {
                     //6. Mutate newly created individuals.
                     kids = mutation(kids, _numMutations, gs);
                     //6a. repair
-                    //kids = repairGenomes(kids, gs,pf);
+                    kids = repairGenomes(kids, gs,pf);
 
                     //7. Create population for t+1
                     _population.individuals = new ArrayList<>(parents);
@@ -373,14 +373,22 @@ public class OEP extends QMStrategy {
     ArrayList<Genome> mutation(ArrayList<Genome> individuals, int numMutations, GameState gs)
     {
         ArrayList<Genome> mutatedIndividuals = new ArrayList<>();
+        Random r = new Random(System.currentTimeMillis());
 
         for (Genome g : individuals)
         {
-
-            for (int i = 0; i <= numMutations; i++)
+            // Pick random positions of the genes to be mutated
+            ArrayList<Integer> positions = new ArrayList<>();
+            while(positions.size()<numMutations)
             {
-                // Pick a random number to select a random gene
-                int picked = new Random().nextInt(g.genes.getActions().size());
+                int pos = r.nextInt(g.genes.getActions().size());
+                if(!positions.contains(pos))
+                    positions.add(pos);
+            }
+
+
+            for (Integer picked: positions)
+            {
 
                 // picks a random gene from the genome
                 Pair<Unit, UnitAction> genePicked = g.genes.getActions().get(picked);
@@ -398,16 +406,15 @@ public class OEP extends QMStrategy {
                 listOfActions.remove(ua);
 
                 // Select a random action from the units possible actions
-                UnitAction newUnitAction = listOfActions.get(new Random().nextInt(listOfActions.size()));
+                UnitAction newUnitAction = listOfActions.get(r.nextInt(listOfActions.size()));
 
                 // Set new action to the gene
                 genePicked.m_b = newUnitAction;
 
                 // Update the gene within the genome
                 g.genes.getActions().set(picked, genePicked);
-
-                mutatedIndividuals.add(g);
             }
+            mutatedIndividuals.add(g);
         }
 
         return mutatedIndividuals;
