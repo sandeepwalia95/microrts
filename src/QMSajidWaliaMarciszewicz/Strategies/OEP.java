@@ -27,16 +27,15 @@ public class OEP extends QMStrategy {
     PlayerActionGenerator genomesGenerator = null;
 
     //parameter used for selection of parents for new generation
-    private int _kparents=0;
+    private double _kparents=0.0; // had to switch back to double. was getting zeroed.
     private int _lookahead; //how far in future are we looking/ how long is the genome
     private int _numMutations = 1;
 
     public class Population{
-        PriorityQueue<Genome> individuals; //maybe better if some priority queue not just simple list
-
+        ArrayList<Genome> individuals;
         public Population()
         {
-            individuals = new PriorityQueue<>();
+            individuals = new ArrayList<>();
         }
     }
 
@@ -69,11 +68,13 @@ public class OEP extends QMStrategy {
         this._populationSize = populationSize;
         this._lookahead = lookahead;
         this._population = new Population();
+        this._kparents = 0;
     }
 
     @Override
     public PlayerAction execute(int player, GameState gs, UnitTypeTable utt, PathFinding pf) throws Exception {
 
+        PathFinding _pf = pf;
         _playerID = player;
         this.genomesGenerator = new PlayerActionGenerator(gs,_playerID);
         long start = System.currentTimeMillis();
@@ -85,7 +86,7 @@ public class OEP extends QMStrategy {
             //1. Initialize the population for t=0
             if(generatePopulation(gs))
             {
-                repairGenomes(gs);//pass something here too
+                repairGenomes(gs, pf); // for repairing the randomly generated population
 
                 while(true) {
                     if (TIME_BUDGET>0 && (System.currentTimeMillis() - start)>=TIME_BUDGET) break;
@@ -94,19 +95,24 @@ public class OEP extends QMStrategy {
                     //2. Evaluate population
                     evaluatePopulation(gs);
                     //3. Select k individuals for the new population (remove the ones with lowest fitness)
-                    PriorityQueue<Genome> parents = selectParents(_kparents);
+                    _kparents = (_population.individuals.size()/3)*2; // Might move if we find a nicer place
+                    //Creating an ArrayList of parents which is k^ long
+                    ArrayList<Genome> parents = new ArrayList<>(selectParents((int)(Math.ceil(_kparents))));
+
                     //4. Create pairs from selected individuals
                     ArrayList<Pair<Genome,Genome>> couples = pairIndividuals(parents);
                     //5. Crossover
                     ArrayList<Genome> kids = crossover(couples);//kids' datatype should be same as population
                     //5a. repair
-                    kids = repairGenomes(kids, gs);
+                    //kids = repairGenomes(kids, gs, pf);//repair only after mutation?
+
                     //6. Mutate newly created individuals.
                     kids = mutation(kids, _numMutations, gs);
                     //6a. repair
-                    kids = repairGenomes(kids, gs);
+                    //kids = repairGenomes(kids, gs,pf);
+
                     //7. Create population for t+1
-                    _population.individuals = new PriorityQueue<>(parents);
+                    _population.individuals = new ArrayList<>(parents);
                     _population.individuals.addAll(kids);
 
                     nruns++;
@@ -162,23 +168,33 @@ public class OEP extends QMStrategy {
 
     void evaluatePopulation(GameState gs)
     {
-        for(Genome g:_population.individuals)
+        for(int index = 0; index < _population.individuals.size(); index++)
         {
             //fill in phenotype feature
             //g.phenotype = gs.cloneIssue(g.genes); //shouldnt I clone the gs?---------ASK
             //evaluate the sequence of playeractions
-            int maxTime = 0;
-            for (Pair <Unit,UnitAction> uaa:g.genes.getActions())
+
+            int maxTime = 0;//pick the longest action
+            //int minTime = 1000;//pick the shortest action
+
+            //gets the duration for the longest or shortest unit action. Loop has to be modified.
+            for (Pair <Unit,UnitAction> uaa:_population.individuals.get(index).genes.getActions())
             {
                 if(uaa.m_b.ETA(uaa.m_a)>maxTime)
                     maxTime = uaa.m_b.ETA(uaa.m_a);
             }
-            g.phenotype = gs.clone();
-            g.phenotype.issue(g.genes);
 
+            //instantiate phenotype for this genome
+            _population.individuals.get(index).phenotype = gs.clone();
+            _population.individuals.get(index).phenotype.issue(_population.individuals.get(index).genes);
+
+            //Creating variables to be used below
+            UnitActionAssignment uaa;
+
+            //Cycle forward by the number of cycles
             for (int i = 0; i < maxTime; i++) {
                 try {
-                    g.phenotype.cycle();
+                    _population.individuals.get(index).phenotype.cycle();
 
                     //for (int countUA = 0; countUA <_population.individuals.get(index))
                     //Modify current PA here so that it doesnt issue the same cycle again
@@ -188,37 +204,69 @@ public class OEP extends QMStrategy {
                 }
                 catch(Exception e)
                 {
-                    g.phenotype.cycle();
+                    _population.individuals.get(index).phenotype.cycle();
 
                     int a =0;
                 }
             }
-            g.phenotype.cycle();
-            g.fitness = new SimpleSqrtEvaluationFunction3().base_score(_playerID,g.phenotype);
+
+            //evaluate fitness after the number of cycles
+            _population.individuals.get(index).fitness = new SimpleSqrtEvaluationFunction3().base_score(_playerID,_population.individuals.get(index).phenotype);
         }
 
     }
 
-    PriorityQueue<Genome> selectParents(int k)
+/*    PriorityQueue<Genome> selectParents(int k)
     {
         //return list of k parents selected from the population
 
         PriorityQueue<Genome> parents = new PriorityQueue<>();
-        for (int i = 0; i < (2/3*_population.individuals.size());i++)
+        for (int i = 0; i <k;i++)
         {
-            parents.add(_population.individuals.poll());
             parents.add(_population.individuals.poll());
 
         }
         return parents;
+    }*/
+
+    ArrayList<Genome> selectParents(int k)
+    {
+        //return list of k parents selected from the population
+
+        ArrayList<Genome> parents = new ArrayList<>();
+
+        Collections.sort(_population.individuals);
+
+        for (int i = 0; i <k;i++)
+        {
+            parents.add(_population.individuals.get(_population.individuals.size()-i-1));// starting from highest
+            //index so picking the best parents.
+            //Note to self - write clearer code. This wont make sense to you in the morning.
+        }
+        return parents;
     }
 
-    ArrayList<Pair<Genome,Genome>> pairIndividuals(PriorityQueue<Genome> parents)
+    /*  ArrayList<Pair<Genome,Genome>> pairIndividuals(PriorityQueue<Genome> parents)
+      {
+          //pick right number of parents from the parameter list and make pairs using roullete or tournaments
+          //For now this is pairing the best together
+          //For future, we might pair differently to introduce diversity
+          ArrayList <Pair<Genome,Genome>> pairs = new ArrayList<>();
+          for(int i = 0; i < parents.size(); i+=2) {
+              pairs.add(new Pair <>(parents.poll(),parents.poll()));
+          }
+          return pairs;
+      }
+  */
+    ArrayList<Pair<Genome,Genome>> pairIndividuals(ArrayList<Genome> parents)
     {
         //pick right number of parents from the parameter list and make pairs using roullete or tournaments
+        //For now this is pairing the best together
+        //For future, we might pair differently to introduce diversity
         ArrayList <Pair<Genome,Genome>> pairs = new ArrayList<>();
-        for(int i = 0; i < parents.size(); i+=2) {
-            pairs.add(new Pair <>(parents.poll(),parents.poll()));
+        //Sorting should not even be required as they are inserted after being sorted
+        for(int i = 0; i<parents.size(); i+=2) {
+            pairs.add(new Pair <>(parents.get(parents.size()-i-1),parents.get(parents.size()-i-2)));
         }
         return pairs;
     }
@@ -241,26 +289,47 @@ public class OEP extends QMStrategy {
         return kids;
     }
 
-    void repairGenomes(GameState gs)
+    void repairGenomes(GameState gs, PathFinding pf)
     {
-        ArrayList <Genome> l = new ArrayList(_population.individuals);
-        repairGenomes(l, gs);
-        _population.individuals = new PriorityQueue<>();
-        _population.individuals.addAll(l);
+//        ArrayList <Genome> l = new ArrayList(_population.individuals);
+        repairGenomes(_population.individuals, gs, pf);
+//        _population.individuals = new PriorityQueue<>();
+        //_population.individuals.addAll(l);
         //Hack. Get this fixed. Either repeat the whole function, or change to consistent array list / pq usage
 
     }
 
-    ArrayList<Genome> repairGenomes(ArrayList<Genome> genomes, GameState gs)
-    {
+    ArrayList<Genome> repairGenomes(ArrayList<Genome> genomes, GameState gs, PathFinding pf) {
+        //Get physical game state
         PhysicalGameState pgs = gs.getPhysicalGameState();
 
-        for(Genome g:genomes)
-        {
-            for (Pair<Unit, UnitAction> uua : g.genes.getActions())
-            {
+        //flags to be used later
+        boolean consistent = false; boolean conflictingPos = false;
+
+        //The list of Repaired Genomes to be returned
+        ArrayList<Genome> returnedGenomes = new ArrayList<>(genomes);
+
+        int index = 0; int size = genomes.size();
+
+        //Looping through every genome (playerAction)
+        while (index < size) {
+
+            ArrayList <Pair<Unit, UnitAction>> uuaList = new ArrayList<>(genomes.get(index).genes.getActions()) ;
+            //Looping through every Unit, UnitAction pair (gene) in that genome
+            for (Pair<Unit, UnitAction> uua : uuaList) {
+
+                int check = 0;
+                if(uua.m_a.getX()>pgs.getWidth())
+                    check++;
+                if(uua.m_a.getY()>pgs.getHeight())
+                    check++;
+
+
+                //put in a check for unit positions to not be out of bounds???
+
+                //Resource Usage for current action
                 ResourceUsage ru = uua.m_b.resourceUsage(uua.m_a, pgs);
-                if (!(!g.genes.consistentWith(ru, gs) || uua.m_a.canExecuteAction(uua.m_b, gs)))//Legality checks
+                if (!(returnedGenomes.get(index).genes.consistentWith(ru, gs)) || !(uua.m_a.canExecuteAction(uua.m_b, gs)) )//Legality checks
                 {
                     List<Pair<Unit,List<UnitAction>>> choices =  genomesGenerator.getChoices();
                     Random r = new Random();
@@ -268,25 +337,38 @@ public class OEP extends QMStrategy {
                     //copying over to get random action assigned to that unit
                     for (Pair<Unit, List<UnitAction>> unitChoices : choices)
                     {
-                        if (unitChoices.m_a == uua.m_a)
-                        {
-                            List<UnitAction> l = new LinkedList<UnitAction>();
-                            l.addAll(unitChoices.m_b);
-                            UnitAction aa = l.remove(r.nextInt(l.size()));
-                            GameState gsCopy = gs.clone();
-                            //--------watch out I changed that!!!!!!!!!!!-------------
-                            //UnitAction ua = aa.execute(unitChoices.m_a, gsCopy);
-                            ResourceUsage r2 = aa.resourceUsage(unitChoices.m_a, pgs);
+                            if (unitChoices.m_a == uua.m_a) {
+                                List<UnitAction> l = new LinkedList<UnitAction>();
+                                l.addAll(unitChoices.m_b);
+                                
+                                do {
+                                    GameState gsCopy = gs.clone();
 
-                            if (g.genes.getResourceUsage().consistentWith(r2, gs)) {
-                                g.genes.getResourceUsage().merge(r2);
-                                g.genes.addUnitAction(unitChoices.m_a, aa);
+                                    UnitAction ua;
+
+                                    if(l.size()>0) {
+                                        ua = l.remove(r.nextInt(l.size()));
+                                        
+                                    }
+                                    else ua = new UnitAction(UnitAction.TYPE_NONE);
+
+                                    if (ua != null) {
+                                        ResourceUsage r2 = ua.resourceUsage(unitChoices.m_a, pgs);
+                                        if (returnedGenomes.get(index).genes.getResourceUsage().consistentWith(r2, gs)) {
+                                            returnedGenomes.get(index).genes.getResourceUsage().merge(r2);// put checks here again and see what to do with this
+                                            returnedGenomes.get(index).genes.removeUnitAction(unitChoices.m_a, uua.m_b);
+                                            returnedGenomes.get(index).genes.addUnitAction(unitChoices.m_a, ua);
+                                            consistent = true;
+                                        }
+                                    }
+                                } while (!consistent);
                             }
                         }
                     }
                 }
-            }
-        }        return genomes;
+            index++;
+        }
+        return returnedGenomes;
     }
 
     ArrayList<Genome> mutation(ArrayList<Genome> individuals, int numMutations, GameState gs)
@@ -344,8 +426,10 @@ public class OEP extends QMStrategy {
         evaluatePopulation(gs);
         //pick the best individual
         if(!(_population.individuals.size()>0)) return new PlayerAction();
-
-        PlayerAction bestSolution = _population.individuals.poll().genes;
+        
+		Collections.sort(_population.individuals);
+        
+		PlayerAction bestSolution = _population.individuals.get(_population.individuals.size()-1).genes;
         //
         PhysicalGameState pgs = gs.getPhysicalGameState();
         PlayerAction _actionsToBePerformed = new PlayerAction();

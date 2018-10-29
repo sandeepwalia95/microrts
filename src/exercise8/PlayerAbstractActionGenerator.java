@@ -341,13 +341,14 @@ public class PlayerAbstractActionGenerator extends AbstractionLayerAI{
                 GameState gsCopy = gameState.clone();
                 UnitAction ua = aa.execute(gsCopy);
 
-                ResourceUsage r2 = ua.resourceUsage(u, physicalGameState);
-
-                if (pa.getResourceUsage().consistentWith(r2, gameState)) {
-                    pa.getResourceUsage().merge(r2);
-                    pa.addUnitAction(u, ua);
-                    consistent = true;
-                    _abs.put(u,aa);
+                if( ua != null) {
+                    ResourceUsage r2 = ua.resourceUsage(u, physicalGameState);
+                    if (pa.getResourceUsage().consistentWith(r2, gameState)) {
+                        pa.getResourceUsage().merge(r2);
+                        pa.addUnitAction(u, ua);
+                        consistent = true;
+                        _abs.put(u, aa);
+                    }
                 }
             } while (!consistent);
         }
