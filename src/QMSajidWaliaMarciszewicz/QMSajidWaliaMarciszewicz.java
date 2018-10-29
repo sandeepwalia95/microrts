@@ -10,6 +10,7 @@ import ai.core.ParameterSpecification;
 import ai.evaluation.SimpleSqrtEvaluationFunction3;
 import rts.GameState;
 import rts.PlayerAction;
+import rts.units.Unit;
 import rts.units.UnitTypeTable;
 
 import java.util.*;
@@ -35,7 +36,6 @@ public class QMSajidWaliaMarciszewicz extends AIWithComputationBudget {
      * ID of a player that is assigned to the bot. Can have a value equal to either 0 or 1.
      */
     private int _playerID;
-
 
     /**
      *
@@ -82,9 +82,10 @@ public class QMSajidWaliaMarciszewicz extends AIWithComputationBudget {
         //place for solutions(strategies) created on the basis of pregame analysis
 
         //return new MonteCarloSearch(TIME_BUDGET,ITERATIONS_BUDGET,100,1000,new RandomAI(), new SimpleSqrtEvaluationFunction3())
-         //       .execute(player,gs,_utt,_pathFinding);
+        //        .execute(player,gs,_utt,_pathFinding);
         return new OEP(TIME_BUDGET, ITERATIONS_BUDGET,6,1).execute(player,gs,_utt,_pathFinding);
     }
+
 
     /**
      * Method used to create an exact copy of the agent.
