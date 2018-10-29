@@ -6,10 +6,12 @@ import ai.evaluation.EvaluationFunction;
 import rts.GameState;
 import rts.PlayerAction;
 import rts.PlayerActionGenerator;
+import rts.units.Unit;
 import rts.units.UnitTypeTable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 public class MonteCarloSearch extends QMStrategy {

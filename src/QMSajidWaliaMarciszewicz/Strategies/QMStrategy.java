@@ -3,7 +3,10 @@ package QMSajidWaliaMarciszewicz.Strategies;
 import ai.abstraction.pathfinding.PathFinding;
 import rts.GameState;
 import rts.PlayerAction;
+import rts.units.Unit;
 import rts.units.UnitTypeTable;
+
+import java.util.Map;
 
 public abstract class QMStrategy {
     abstract public PlayerAction execute(int player, GameState gs, UnitTypeTable utt, PathFinding pf) throws Exception;
