@@ -302,6 +302,7 @@ public class OEP extends QMStrategy {
     ArrayList<Genome> repairGenomes(ArrayList<Genome> genomes, GameState gs, PathFinding pf) {
         //Get physical game state
         PhysicalGameState pgs = gs.getPhysicalGameState();
+        GameState gsCopy = gs.clone();
 
         //flags to be used later
         boolean consistent = false; boolean conflictingPos = false;
@@ -329,7 +330,7 @@ public class OEP extends QMStrategy {
 
                 //Resource Usage for current action
                 ResourceUsage ru = uua.m_b.resourceUsage(uua.m_a, pgs);
-                if (!(returnedGenomes.get(index).genes.consistentWith(ru, gs)) || !(uua.m_a.canExecuteAction(uua.m_b, gs)) )//Legality checks
+                if (!(returnedGenomes.get(index).genes.consistentWith(ru, gsCopy)) || !(uua.m_a.canExecuteAction(uua.m_b, gsCopy)) )//Legality checks
                 {
                     List<Pair<Unit,List<UnitAction>>> choices =  genomesGenerator.getChoices();
                     Random r = new Random();
@@ -342,8 +343,6 @@ public class OEP extends QMStrategy {
                                 l.addAll(unitChoices.m_b);
                                 
                                 do {
-                                    GameState gsCopy = gs.clone();
-
                                     UnitAction ua;
 
                                     if(l.size()>0) {
@@ -354,7 +353,7 @@ public class OEP extends QMStrategy {
 
                                     if (ua != null) {
                                         ResourceUsage r2 = ua.resourceUsage(unitChoices.m_a, pgs);
-                                        if (returnedGenomes.get(index).genes.getResourceUsage().consistentWith(r2, gs)) {
+                                        if (returnedGenomes.get(index).genes.getResourceUsage().consistentWith(r2, gsCopy)) {
                                             returnedGenomes.get(index).genes.getResourceUsage().merge(r2);// put checks here again and see what to do with this
                                             returnedGenomes.get(index).genes.removeUnitAction(unitChoices.m_a, uua.m_b);
                                             returnedGenomes.get(index).genes.addUnitAction(unitChoices.m_a, ua);
