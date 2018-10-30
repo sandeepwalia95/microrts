@@ -18,10 +18,36 @@ public class Crossover {
         r= new Random(System.currentTimeMillis());
     }
 
-    ArrayList<PlayerAction> uniformCrossover2(Pair<OEP.Genome,OEP.Genome> parents)
+    private void gatherResources(PlayerAction pa, GameState gs, PhysicalGameState pgs)
     {
+        for (Unit u : pgs.getUnits()) {
+            UnitActionAssignment uaa = gs.getUnitActions().get(u);
+            if (uaa != null) {
+                ResourceUsage ru = uaa.action.resourceUsage(u, pgs);
+                pa.getResourceUsage().merge(ru);
+            }
+        }
+    }
+
+
+    /**
+     * Function used to execute uniform crossover returning 2 children. (Each gene in a genome is picked randomly from one of the parents.)
+     * @param parents pair of Genomes used for creation of a new individual
+     * @param gs current game state
+     * @return list of 2 newly created individuals
+     */
+    ArrayList<PlayerAction> uniformCrossover2(Pair<OEP.Genome,OEP.Genome> parents, GameState gs)
+    {
+        //create a genes sequences for the children
         PlayerAction genesSequence1 = new PlayerAction();
         PlayerAction genesSequence2 = new PlayerAction();
+        //take the physical state of the game
+        PhysicalGameState pgs = gs.getPhysicalGameState();
+        //collecting resources that are currently used in the game state
+        gatherResources(genesSequence1,gs,pgs);
+        gatherResources(genesSequence2,gs,pgs);
+
+        //iterating through all the genes in a sequence
         for(int i=0;i<parents.m_b.genes.getActions().size();i++)
         {
             //take the unit from the position i
@@ -39,6 +65,22 @@ public class Crossover {
                 action2 = parents.m_a.genes.getAction(u);             //parent A
             }
 
+            //check if the new action for the unit is consistent
+            ResourceUsage r1 = action1.resourceUsage(u, pgs);
+            if (!genesSequence1.getResourceUsage().consistentWith(r1, gs)) {
+                //if it is not consistent pick action NONE
+                action1 = new UnitAction(UnitAction.TYPE_NONE);
+            }
+            ResourceUsage r2 = action2.resourceUsage(u, pgs);
+            if (!genesSequence2.getResourceUsage().consistentWith(r2, gs)) {
+                //if it is not consistent pick action NONE
+                action2 = new UnitAction(UnitAction.TYPE_NONE);
+            }
+
+            //merge resourcs for the new ction
+            genesSequence1.getResourceUsage().merge(action1.resourceUsage(u, pgs));
+            genesSequence2.getResourceUsage().merge(action2.resourceUsage(u, pgs));
+
             //add new pair to the genes sequence (PlayerAction)
             genesSequence1.addUnitAction(u,action1);
             genesSequence2.addUnitAction(u,action2);
@@ -49,12 +91,27 @@ public class Crossover {
         return kidsGenes;
     }
 
-    ArrayList<PlayerAction> singlePointCrossover2(Pair<OEP.Genome, OEP.Genome> parents)
+    /**
+     * Function used to execute single point crossover returning 2 kids. (Pick poistion in the genome and copy one part of it from first
+     * parent and the rest from the second one.)
+     * @param parents pair of Genomes used for creation of a new individual
+     * @param gs current game state
+     * @return list of 2 newly created individuals
+     */
+    ArrayList<PlayerAction> singlePointCrossover2(Pair<OEP.Genome, OEP.Genome> parents, GameState gs)
     {
         int position = 1+ r.nextInt(parents.m_b.genes.getActions().size()-1); //choose a position at individual at random
 
+        //create a genes sequences for the children
         PlayerAction genesSequence1 = new PlayerAction();
         PlayerAction genesSequence2 = new PlayerAction();
+        //take the physical state of the game
+        PhysicalGameState pgs = gs.getPhysicalGameState();
+        //collecting resources that are currently used in the game state
+        gatherResources(genesSequence1,gs,pgs);
+        gatherResources(genesSequence2,gs,pgs);
+
+        //iterating through all the genes in a sequence
         for(int i=0;i<parents.m_b.genes.getActions().size();i++)
         {
             //take the unit from the position i
@@ -72,6 +129,22 @@ public class Crossover {
                 action2 = parents.m_a.genes.getAction(u);             //parent A
             }
 
+            //check if the new action for the unit is consistent
+            ResourceUsage r1 = action1.resourceUsage(u, pgs);
+            if (!genesSequence1.getResourceUsage().consistentWith(r1, gs)) {
+                //if it is not consistent pick action NONE
+                action1 = new UnitAction(UnitAction.TYPE_NONE);
+            }
+            ResourceUsage r2 = action2.resourceUsage(u, pgs);
+            if (!genesSequence2.getResourceUsage().consistentWith(r2, gs)) {
+                //if it is not consistent pick action NONE
+                action2 = new UnitAction(UnitAction.TYPE_NONE);
+            }
+
+            //merge resourcs for the new ction
+            genesSequence1.getResourceUsage().merge(action1.resourceUsage(u, pgs));
+            genesSequence2.getResourceUsage().merge(action2.resourceUsage(u, pgs));
+
             //add new pair to the genes sequence (PlayerAction)
             genesSequence1.addUnitAction(u,action1);
             genesSequence2.addUnitAction(u,action2);
@@ -83,7 +156,15 @@ public class Crossover {
         return kidsGenes;
     }
 
-    ArrayList<PlayerAction> nPointsCrossover2(Pair<OEP.Genome, OEP.Genome> parents, int n)
+    /**
+     * Function used to execute n-point crossover returning 2 children. (Pick n positions in the genome and randomly decided which
+     * parts between positions should be copied from first parent and which from the second one.)
+     * @param parents pair of Genomes used for creation of a new individual
+     * @param n number of positions picked in the Genome
+     * @param gs current game state
+     * @return list of 2 newly created individuals
+     */
+    ArrayList<PlayerAction> nPointsCrossover2(Pair<OEP.Genome, OEP.Genome> parents, int n, GameState gs)
     {
         //pick n positions
         //first element of the pair is the position
@@ -97,8 +178,15 @@ public class Crossover {
         }
         positions.put(parents.m_b.genes.getActions().size(), r.nextInt(20) > 10);
 
+        //create a genes sequences for the children
         PlayerAction genesSequence1 = new PlayerAction();
         PlayerAction genesSequence2 = new PlayerAction();
+        //take the physical state of the game
+        PhysicalGameState pgs = gs.getPhysicalGameState();
+        //collecting resources that are currently used in the game state
+        gatherResources(genesSequence1,gs,pgs);
+        gatherResources(genesSequence2,gs,pgs);
+
         int a=0,b=0; //boundaries of the section to be moved to a kid
         for(Integer pos: positions.keySet())
         {
@@ -121,6 +209,22 @@ public class Crossover {
                     action2 = parents.m_a.genes.getAction(u);             //parent A
                 }
 
+                //check if the new action for the unit is consistent
+                ResourceUsage r1 = action1.resourceUsage(u, pgs);
+                if (!genesSequence1.getResourceUsage().consistentWith(r1, gs)) {
+                    //if it is not consistent pick action NONE
+                    action1 = new UnitAction(UnitAction.TYPE_NONE);
+                }
+                ResourceUsage r2 = action2.resourceUsage(u, pgs);
+                if (!genesSequence2.getResourceUsage().consistentWith(r2, gs)) {
+                    //if it is not consistent pick action NONE
+                    action2 = new UnitAction(UnitAction.TYPE_NONE);
+                }
+
+                //merge resourcs for the new ction
+                genesSequence1.getResourceUsage().merge(action1.resourceUsage(u, pgs));
+                genesSequence2.getResourceUsage().merge(action2.resourceUsage(u, pgs));
+
                 //add new pair to the genes sequence (PlayerAction)
                 genesSequence1.addUnitAction(u,action1);
                 genesSequence2.addUnitAction(u,action2);
@@ -132,21 +236,22 @@ public class Crossover {
         return kidsGenes;
     }
 
+    /**
+     * Function used to execute uniform crossover. (Each gene in a genome is picked randomly from one of the parents.)
+     * @param parents pair of Genomes used for creation of a new individual
+     * @param gs current game state
+     * @return newly created individual
+     */
     PlayerAction uniformCrossover(Pair<OEP.Genome, OEP.Genome> parents, GameState gs)
     {
-        Random r = new Random();
-
+        //create a genes sequence for the child
         PlayerAction genesSequence = new PlayerAction();
+        //take the physical state of the game
         PhysicalGameState pgs = gs.getPhysicalGameState();
+        //collecting resources that are currently used in the game state
+        gatherResources(genesSequence,gs,pgs);
 
-        for (Unit u : pgs.getUnits()) {
-            UnitActionAssignment uaa = gs.getUnitActions().get(u);
-            if (uaa != null) {
-                ResourceUsage ru = uaa.action.resourceUsage(u, pgs);
-                genesSequence.getResourceUsage().merge(ru);
-            }
-        }
-
+        //iterating through all the genes in a sequence
         for(int i=0;i<parents.m_a.genes.getActions().size();i++)
         {
             //take the unit from the position i
@@ -159,16 +264,14 @@ public class Crossover {
             else
                 action = parents.m_b.genes.getAction(u);            //parent B
 
-            boolean consistent = false;
-            do {
-                ResourceUsage r2 = action.resourceUsage(u, pgs);
+            //check if the new action for the unit is consistent
+            ResourceUsage r2 = action.resourceUsage(u, pgs);
+            if (!genesSequence.getResourceUsage().consistentWith(r2, gs)) {
+                //if it is not consistent pick action NONE
+                action = new UnitAction(UnitAction.TYPE_NONE);
+            }
 
-                if (!genesSequence.getResourceUsage().consistentWith(r2, gs)) {
-                    action = new UnitAction(UnitAction.TYPE_NONE);
-                }
-                consistent = true;
-            } while (!consistent);
-
+            //merge resourcs for the new ction
             genesSequence.getResourceUsage().merge(action.resourceUsage(u, pgs));
             //add new pair to the genes sequence (PlayerAction)
             genesSequence.addUnitAction(u,action);
@@ -177,12 +280,25 @@ public class Crossover {
         return genesSequence;
     }
 
-    PlayerAction singlePointCrossover(Pair<OEP.Genome, OEP.Genome> parents)
+    /**
+     * Function used to execute single point crossover. (Pick poistion in the genome and copy one part of it from first
+     * parent and the rest from the second one.)
+     * @param parents pair of Genomes used for creation of a new individual
+     * @param gs current game state
+     * @return newly created individual
+     */
+    PlayerAction singlePointCrossover(Pair<OEP.Genome, OEP.Genome> parents, GameState gs)
     {
-        Random r = new Random();
         int position = 1+ r.nextInt(parents.m_b.genes.getActions().size()-1); //choose a position at individual at random
 
+        //create a genes sequence for the child
         PlayerAction genesSequence = new PlayerAction();
+        //take the physical state of the game
+        PhysicalGameState pgs = gs.getPhysicalGameState();
+        //collecting resources that are currently used in the game state
+        gatherResources(genesSequence,gs,pgs);
+
+        //iterating through all the genes in a sequence
         for(int i=0;i<parents.m_b.genes.getActions().size();i++)
         {
             //take the unit from the position i
@@ -195,6 +311,15 @@ public class Crossover {
             else    //parent B
                 action = parents.m_b.genes.getAction(u);
 
+            //check if the new action for the unit is consistent
+            ResourceUsage r2 = action.resourceUsage(u, pgs);
+            if (!genesSequence.getResourceUsage().consistentWith(r2, gs)) {
+                //if it is not consistent pick action NONE
+                action = new UnitAction(UnitAction.TYPE_NONE);
+            }
+
+            //merge resourcs for the new ction
+            genesSequence.getResourceUsage().merge(action.resourceUsage(u, pgs));
             //add new pair to the genes sequence (PlayerAction)
             genesSequence.addUnitAction(u,action);
         }
@@ -202,10 +327,16 @@ public class Crossover {
         return genesSequence;
     }
 
-    PlayerAction nPointsCrossover(Pair<OEP.Genome, OEP.Genome> parents, int n)
+    /**
+     * Function used to execute n-point crossover. (Pick n positions in the genome and randomly decided which
+     * parts between positions should be copied from first parent and which from the second one.)
+     * @param parents pair of Genomes used for creation of a new individual
+     * @param n number of positions picked in the Genome
+     * @param gs current game state
+     * @return newly created individual
+     */
+    PlayerAction nPointsCrossover(Pair<OEP.Genome, OEP.Genome> parents, int n, GameState gs)
     {
-        Random r = new Random();
-
         //pick n positions
         //first element of the pair is the position
         //second element of the pair is: true - take gene from parent A, false - take gene from parent B
@@ -216,9 +347,14 @@ public class Crossover {
             if(!positions.keySet().contains(pos))
                 positions.put(pos, r.nextInt(20) > 10);
         }
-        positions.put(parents.m_b.genes.getActions().size(), r.nextInt(20) > 10);
+        positions.put(parents.m_b.genes.getActions().size(), r.nextInt(20) > 10); //add last index - only for the implementation purpose
 
+        //create a genes sequence for the child
         PlayerAction genesSequence = new PlayerAction();
+        //take the physical state of the game
+        PhysicalGameState pgs = gs.getPhysicalGameState();
+        //collecting resources that are currently used in the game state
+        gatherResources(genesSequence,gs,pgs);
         int a=0,b=0; //boundaries of the section to be moved to a kid
         for(Integer pos: positions.keySet())
         {
@@ -235,6 +371,15 @@ public class Crossover {
                 else    //parent B
                     action = parents.m_b.genes.getAction(u);
 
+                //check if the new action for the unit is consistent
+                ResourceUsage r2 = action.resourceUsage(u, pgs);
+                if (!genesSequence.getResourceUsage().consistentWith(r2, gs)) {
+                    //if it is not consistent pick action NONE
+                    action = new UnitAction(UnitAction.TYPE_NONE);
+                }
+
+                //merge resourcs for the new ction
+                genesSequence.getResourceUsage().merge(action.resourceUsage(u, pgs));
                 //add new pair to the genes sequence (PlayerAction)
                 genesSequence.addUnitAction(u,action);
             }
