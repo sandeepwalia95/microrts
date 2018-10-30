@@ -3,18 +3,14 @@ package QMSajidWaliaMarciszewicz.Strategies;
 import ai.abstraction.AbstractAction;
 import ai.abstraction.pathfinding.PathFinding;
 import ai.evaluation.SimpleSqrtEvaluationFunction3;
-import exercise8.PlayerAbstractActionGenerator;
+import org.apache.commons.compress.archivers.dump.DumpArchiveEntry;
 import rts.*;
-import org.apache.commons.compress.archivers.ar.ArArchiveEntry;
 import rts.units.Unit;
 import rts.UnitAction;
 import rts.units.UnitTypeTable;
 import util.Pair;
-
-
 import java.util.*;
 
-import static rts.UnitAction.*;
 
 public class OEP extends QMStrategy {
 
@@ -76,24 +72,25 @@ public class OEP extends QMStrategy {
 
         PathFinding _pf = pf;
         _playerID = player;
+        GameState _gs = gs.clone();
         long start = System.currentTimeMillis();
         int nruns = 0;
 
         //Only execute an action if the player can execute any.
         if(gs.canExecuteAnyAction(player))
         {
-            this.genomesGenerator = new PlayerActionGenerator(gs,_playerID);
+            this.genomesGenerator = new PlayerActionGenerator(_gs,_playerID);
             //1. Initialize the population for t=0
-            if(generatePopulation(gs))
+            if(generatePopulation(_gs))
             {
-                repairGenomes(gs, pf); // for repairing the randomly generated population
+                repairGenomes(_gs, pf); // for repairing the randomly generated population
 
                 while(true) {
                     if (TIME_BUDGET>0 && (System.currentTimeMillis() - start)>=TIME_BUDGET) break;
                     if (ITERATIONS_BUDGET>0 && nruns>=ITERATIONS_BUDGET) break;
 
                     //2. Evaluate population
-                    evaluatePopulation(gs);
+                    evaluatePopulation(_gs);
                     //3. Select k individuals for the new population (remove the ones with lowest fitness)
                     _kparents = (_population.individuals.size()/3)*2; // Might move if we find a nicer place
                     //Creating an ArrayList of parents which is k^ long
@@ -107,9 +104,9 @@ public class OEP extends QMStrategy {
                     //kids = repairGenomes(kids, gs, pf);//repair only after mutation?
 
                     //6. Mutate newly created individuals.
-                    kids = mutation(kids, _numMutations, gs);
+                    kids = mutation(kids, _numMutations, _gs);
                     //6a. repair
-                    kids = repairGenomes(kids, gs,pf);
+                    kids = repairGenomes(kids, _gs,pf);
 
                     //7. Create population for t+1
                     _population.individuals = new ArrayList<>(parents);
@@ -124,7 +121,7 @@ public class OEP extends QMStrategy {
         }
 
         //pick the best individual from the population
-        return bestIndividual(gs);
+        return bestIndividual(_gs);
     }
 
     private int findPopulationSize(GameState gs)
@@ -170,9 +167,8 @@ public class OEP extends QMStrategy {
     {
         for(int index = 0; index < _population.individuals.size(); index++)
         {
-            //fill in phenotype feature
-            //g.phenotype = gs.cloneIssue(g.genes); //shouldnt I clone the gs?---------ASK
-            //evaluate the sequence of playeractions
+            //get the pa to evaluate
+            PlayerAction pa_to_eval = _population.individuals.get(index).genes;
 
             int maxTime = 0;//pick the longest action
             //int minTime = 1000;//pick the shortest action
@@ -184,33 +180,21 @@ public class OEP extends QMStrategy {
                     maxTime = uaa.m_b.ETA(uaa.m_a);
             }
 
-            //instantiate phenotype for this genome
-            _population.individuals.get(index).phenotype = gs.clone();
-            _population.individuals.get(index).phenotype.issue(_population.individuals.get(index).genes);
+            // Given the current game state, execute the starting PlayerAction and clone the state
+            GameState gs2 = gs.cloneIssue(pa_to_eval);
 
-            //Creating variables to be used below
-            UnitActionAssignment uaa;
+            //Make a copy of the resultant state for the rollout
+            //GameState gs3 = gs2.clone();
+            _population.individuals.get(index).phenotype = gs2.clone();
 
             //Cycle forward by the number of cycles
             for (int i = 0; i < maxTime; i++) {
-                try {
-                    _population.individuals.get(index).phenotype.cycle();
-
-                    //for (int countUA = 0; countUA <_population.individuals.get(index))
-                    //Modify current PA here so that it doesnt issue the same cycle again
-                    //Between cycles check for resource usage
-                    //montecarlo simulate function
-
-                }
-                catch(Exception e)
-                {
-                    _population.individuals.get(index).phenotype.cycle();
-
-                    int a =0;
-                }
+                //gs3.cycle();
+                _population.individuals.get(index).phenotype.cycle();
             }
 
             //evaluate fitness after the number of cycles
+//            _population.individuals.get(index).fitness = new SimpleSqrtEvaluationFunction3().base_score(_playerID,gs3);
             _population.individuals.get(index).fitness = new SimpleSqrtEvaluationFunction3().base_score(_playerID,_population.individuals.get(index).phenotype);
         }
 
@@ -301,8 +285,8 @@ public class OEP extends QMStrategy {
 
     ArrayList<Genome> repairGenomes(ArrayList<Genome> genomes, GameState gs, PathFinding pf) {
         //Get physical game state
-        PhysicalGameState pgs = gs.getPhysicalGameState();
-        GameState gsCopy = gs.clone();
+        //PhysicalGameState pgs = gs.getPhysicalGameState();
+        //GameState gsCopy = gs.clone();
 
         //flags to be used later
         boolean consistent = false; boolean conflictingPos = false;
@@ -314,18 +298,12 @@ public class OEP extends QMStrategy {
 
         //Looping through every genome (playerAction)
         while (index < size) {
+            GameState gsCopy = gs.clone();
+            PhysicalGameState pgs = gsCopy.getPhysicalGameState();
 
             ArrayList <Pair<Unit, UnitAction>> uuaList = new ArrayList<>(genomes.get(index).genes.getActions()) ;
             //Looping through every Unit, UnitAction pair (gene) in that genome
             for (Pair<Unit, UnitAction> uua : uuaList) {
-
-                int check = 0;
-                if(uua.m_a.getX()>pgs.getWidth())
-                    check++;
-                if(uua.m_a.getY()>pgs.getHeight())
-                    check++;
-
-
                 //put in a check for unit positions to not be out of bounds???
 
                 //Resource Usage for current action
@@ -403,7 +381,8 @@ public class OEP extends QMStrategy {
                 List<UnitAction> listOfActions = unit.getUnitActions(gs);
 
                 // Remove the action that is already set from the list so that it is not picked again
-                listOfActions.remove(ua);
+                if(listOfActions.size()>1)
+                    listOfActions.remove(ua);
 
                 // Select a random action from the units possible actions
                 UnitAction newUnitAction = listOfActions.get(r.nextInt(listOfActions.size()));
@@ -454,17 +433,18 @@ public class OEP extends QMStrategy {
                     try {
                         //take the action for the unit from the solution generated by the algorithm
                         UnitAction ua = bestSolution.getAction(u);
+                        //-------action can be null----------?????????
 
                         if (ua.resourceUsage(u, pgs).consistentWith(_actionsToBePerformed.getResourceUsage(), gs)) {
                             ResourceUsage ru = ua.resourceUsage(u, pgs);
                             _actionsToBePerformed.getResourceUsage().merge(ru);
                             _actionsToBePerformed.addUnitAction(u, ua);
                         } else {
-                            _actionsToBePerformed.addUnitAction(u, null);
+                            _actionsToBePerformed.addUnitAction(u, new UnitAction(UnitAction.TYPE_NONE));
                         }
                     } catch (Exception ex) {
                         ex.printStackTrace();
-                        _actionsToBePerformed.addUnitAction(u, null);
+                        _actionsToBePerformed.addUnitAction(u, new UnitAction(UnitAction.TYPE_NONE));
                     }
                 }
             }
@@ -477,5 +457,10 @@ public class OEP extends QMStrategy {
     @Override
     public QMStrategy clone() {
         return new OEP(TIME_BUDGET,ITERATIONS_BUDGET,_populationSize, _lookahead);
+    }
+
+    public void reset() {
+        genomesGenerator = null;
+        _population = null;
     }
 }
