@@ -1,7 +1,6 @@
 package QMSajidWaliaMarciszewicz.Strategies;
 
-import rts.PlayerAction;
-import rts.UnitAction;
+import rts.*;
 import rts.units.Unit;
 import util.Pair;
 
@@ -133,11 +132,20 @@ public class Crossover {
         return kidsGenes;
     }
 
-    PlayerAction uniformCrossover(Pair<OEP.Genome, OEP.Genome> parents)
+    PlayerAction uniformCrossover(Pair<OEP.Genome, OEP.Genome> parents, GameState gs)
     {
         Random r = new Random();
 
         PlayerAction genesSequence = new PlayerAction();
+        PhysicalGameState pgs = gs.getPhysicalGameState();
+
+        for (Unit u : pgs.getUnits()) {
+            UnitActionAssignment uaa = gs.getUnitActions().get(u);
+            if (uaa != null) {
+                ResourceUsage ru = uaa.action.resourceUsage(u, pgs);
+                genesSequence.getResourceUsage().merge(ru);
+            }
+        }
 
         for(int i=0;i<parents.m_a.genes.getActions().size();i++)
         {
@@ -151,6 +159,17 @@ public class Crossover {
             else
                 action = parents.m_b.genes.getAction(u);            //parent B
 
+            boolean consistent = false;
+            do {
+                ResourceUsage r2 = action.resourceUsage(u, pgs);
+
+                if (!genesSequence.getResourceUsage().consistentWith(r2, gs)) {
+                    action = new UnitAction(UnitAction.TYPE_NONE);
+                }
+                consistent = true;
+            } while (!consistent);
+
+            genesSequence.getResourceUsage().merge(action.resourceUsage(u, pgs));
             //add new pair to the genes sequence (PlayerAction)
             genesSequence.addUnitAction(u,action);
         }

@@ -99,12 +99,12 @@ public class OEP extends QMStrategy {
                     //4. Create pairs from selected individuals
                     ArrayList<Pair<Genome,Genome>> couples = pairIndividuals(parents);
                     //5. Crossover
-                    ArrayList<Genome> kids = crossover(couples);//kids' datatype should be same as population
+                    ArrayList<Genome> kids = crossover(couples, _gs);//kids' datatype should be same as population
                     //5a. repair
                     //kids = repairGenomes(kids, gs, pf);//repair only after mutation?
-
                     //6. Mutate newly created individuals.
                     kids = mutation(kids, _numMutations, _gs);
+
                     //6a. repair
                     kids = repairGenomes(kids, _gs,pf);
 
@@ -146,6 +146,8 @@ public class OEP extends QMStrategy {
 
         //if(!choicesThisCycle)
          //   return false; //there is no available action for this player
+
+        PhysicalGameState pgs = gs.getPhysicalGameState();
 
         genomesGenerator.randomizeOrder();
         int N = findPopulationSize(gs); //so to not calculate it every time the loop is being executed
@@ -255,7 +257,7 @@ public class OEP extends QMStrategy {
         return pairs;
     }
 
-    ArrayList<Genome> crossover(ArrayList<Pair<Genome,Genome>> couples)
+    ArrayList<Genome> crossover(ArrayList<Pair<Genome,Genome>> couples, GameState gs)
     {
         //perform crossover on given pairs
         ArrayList<Genome> kids = new ArrayList<>();
@@ -266,7 +268,8 @@ public class OEP extends QMStrategy {
             Genome kid = new Genome();
             kid.ID = idGenerator;
             idGenerator++;
-            kid.genes = crossover.uniformCrossover(parents);
+            GameState gsClone = gs.clone();
+            kid.genes = crossover.uniformCrossover(parents, gsClone);
             kids.add(kid);
         }
 
@@ -287,9 +290,8 @@ public class OEP extends QMStrategy {
         //Get physical game state
         //PhysicalGameState pgs = gs.getPhysicalGameState();
         //GameState gsCopy = gs.clone();
-
         //flags to be used later
-        boolean consistent = false; boolean conflictingPos = false;
+        boolean consistent = false;
 
         //The list of Repaired Genomes to be returned
         ArrayList<Genome> returnedGenomes = new ArrayList<>(genomes);
@@ -319,23 +321,29 @@ public class OEP extends QMStrategy {
                             if (unitChoices.m_a == uua.m_a) {
                                 List<UnitAction> l = new LinkedList<UnitAction>();
                                 l.addAll(unitChoices.m_b);
-                                
+
+                                //flags to be used later
+                                consistent = false;
+
                                 do {
                                     UnitAction ua;
 
                                     if(l.size()>0) {
                                         ua = l.remove(r.nextInt(l.size()));
-                                        
+
                                     }
-                                    else ua = new UnitAction(UnitAction.TYPE_NONE);
+                                    else
+                                        ua = new UnitAction(UnitAction.TYPE_NONE);
+
 
                                     if (ua != null) {
                                         ResourceUsage r2 = ua.resourceUsage(unitChoices.m_a, pgs);
-                                        if (returnedGenomes.get(index).genes.getResourceUsage().consistentWith(r2, gsCopy)) {
+                                        if (returnedGenomes.get(index).genes.getResourceUsage().consistentWith(r2, gsCopy) && uua.m_a.canExecuteAction(ua, gsCopy)) {
                                             returnedGenomes.get(index).genes.getResourceUsage().merge(r2);// put checks here again and see what to do with this
                                             returnedGenomes.get(index).genes.removeUnitAction(unitChoices.m_a, uua.m_b);
                                             returnedGenomes.get(index).genes.addUnitAction(unitChoices.m_a, ua);
-                                            consistent = true;
+                                            //if (!(returnedGenomes.get(index).genes.consistentWith(r2, gsCopy)) || !(uua.m_a.canExecuteAction(ua, gsCopy)) )
+                                                consistent = true;
                                         }
                                     }
                                 } while (!consistent);
@@ -355,6 +363,9 @@ public class OEP extends QMStrategy {
 
         for (Genome g : individuals)
         {
+            GameState gsClone = gs.clone();
+            PhysicalGameState pgs = gsClone.getPhysicalGameState();
+
             // Pick random positions of the genes to be mutated
             ArrayList<Integer> positions = new ArrayList<>();
             while(positions.size()<numMutations)
@@ -378,20 +389,37 @@ public class OEP extends QMStrategy {
                 UnitAction ua = genePicked.m_b;
 
                 // All possible actions for the unit
-                List<UnitAction> listOfActions = unit.getUnitActions(gs);
+                List<UnitAction> listOfActions = unit.getUnitActions(gsClone);
 
                 // Remove the action that is already set from the list so that it is not picked again
                 if(listOfActions.size()>1)
                     listOfActions.remove(ua);
 
-                // Select a random action from the units possible actions
-                UnitAction newUnitAction = listOfActions.get(r.nextInt(listOfActions.size()));
+                boolean consistent = false;
+                do {
 
-                // Set new action to the gene
-                genePicked.m_b = newUnitAction;
+                    UnitAction newUnitAction;
+                    if(listOfActions.size()==0)
+                        newUnitAction = new UnitAction(UnitAction.TYPE_NONE);
+                    else
+                    // Select a random action from the units possible actions
+                     newUnitAction= listOfActions.remove(r.nextInt(listOfActions.size()));
 
-                // Update the gene within the genome
-                g.genes.getActions().set(picked, genePicked);
+                    ResourceUsage r2 = newUnitAction.resourceUsage(unit, pgs);
+
+                    if (g.genes.getResourceUsage().consistentWith(r2, gsClone)) {
+                        g.genes.getResourceUsage().merge(r2);
+
+                        // Set new action to the gene
+                        genePicked.m_b = newUnitAction;
+
+                        // Update the gene within the genome
+                        g.genes.getActions().set(picked, genePicked);
+
+                        consistent = true;
+                    }
+                } while (!consistent);
+
             }
             mutatedIndividuals.add(g);
         }
