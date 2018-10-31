@@ -6,6 +6,7 @@
 
 package gui.frontend;
 
+import QMSajidWaliaMarciszewicz.QMSajidWaliaMarciszewicz;
 import ai.BranchingFactorCalculatorBigInteger;
 import ai.core.AI;
 import ai.core.AIWithComputationBudget;
@@ -161,7 +162,8 @@ public class FEStatePane extends JPanel {
                    AHTNAI.class,
                    InformedNaiveMCTS.class,
                    PuppetSearchMCTS.class,
-                   SCV.class
+                   SCV.class,
+            QMSajidWaliaMarciszewicz.class
                   };
 
     

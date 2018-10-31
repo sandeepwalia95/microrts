@@ -1,6 +1,7 @@
 package tests;
 
 import QMSajidWaliaMarciszewicz.QMSajidWaliaMarciszewicz;
+import ai.abstraction.LightRush;
 import ai.abstraction.pathfinding.GreedyPathFinding;
 import ai.core.AI;
 import ai.*;
@@ -37,9 +38,11 @@ public class GameVisualSimulationTest {
         //AI ai1 = new BotExercise5(TIME_BUDGET, -1, utt, new BFSPathFinding());  //new WorkerRush(utt, new BFSPathFinding());
 
         //AI ai1 = new WorkerRush(utt);
-        AI ai1 = new QMSajidWaliaMarciszewicz(TIME_BUDGET, 100, utt, new GreedyPathFinding());
+        AI ai1 = new QMSajidWaliaMarciszewicz(TIME_BUDGET, -1, utt, new GreedyPathFinding());
 //        AI ai2 = new RandomBiasedAI();
         AI ai2 = new RandomAI();
+//        AI ai2 = new WorkerRush( utt, new GreedyPathFinding());
+//        AI ai2 = new LightRush(utt, new GreedyPathFinding());
 
 //        AI ai1 = new mc.MonteCarlo(100, -1, 100, 1000,
 //                new RandomBiasedAI(), new SimpleSqrtEvaluationFunction3());

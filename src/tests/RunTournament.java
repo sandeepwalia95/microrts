@@ -1,9 +1,11 @@
 package tests;
 
 import ai.RandomBiasedAI;
+import ai.abstraction.pathfinding.GreedyPathFinding;
 import ai.core.AI;
 import ai.evaluation.SimpleEvaluationFunction;
 import ai.mcts.naivemcts.NaiveMCTS;
+import QMSajidWaliaMarciszewicz.QMSajidWaliaMarciszewicz;
 import ai.mcts.uct.UCT;
 import rts.units.UnitTypeTable;
 
@@ -38,6 +40,7 @@ public class RunTournament {
                 new SimpleEvaluationFunction()));
         AIs.add(new NaiveMCTS(timeBudget, -1, 100, 20, 0.33f, 0.0f, 0.75f,
                 new RandomBiasedAI(), new SimpleEvaluationFunction(), true));
+        AIs.add(new QMSajidWaliaMarciszewicz(timeBudget, -1));
 
         // Create list of maps for tournament
         List<String> maps = new ArrayList<>();
@@ -46,8 +49,8 @@ public class RunTournament {
         // Initialize result writing
         String folderForReadWriteFolders = "readwrite";
 
-//        String traceOutputFolder = "traces";
-        String traceOutputFolder = null;  // Ignore traces
+        String traceOutputFolder = "traces";
+//        String traceOutputFolder = null;  // Ignore traces
 
 //        Writer out = new BufferedWriter(new FileWriter(new File("results.txt")));  // Print to file
         Writer out = new PrintWriter(System.out);  // Print to console

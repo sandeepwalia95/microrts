@@ -3,6 +3,7 @@ package QMSajidWaliaMarciszewicz;
 import QMSajidWaliaMarciszewicz.Strategies.MonteCarloSearch;
 import QMSajidWaliaMarciszewicz.Strategies.OEP;
 import ai.RandomAI;
+import ai.abstraction.pathfinding.GreedyPathFinding;
 import ai.abstraction.pathfinding.PathFinding;
 import ai.core.AI;
 import ai.core.AIWithComputationBudget;
@@ -57,9 +58,24 @@ public class QMSajidWaliaMarciszewicz extends AIWithComputationBudget {
         this._actionCounter=0;
     }
 
-    /**
-     *  Method used to reset the agent to an initial configuration.
-     */
+    public QMSajidWaliaMarciszewicz(int timeBudget, int iterationBudget) {
+        super(timeBudget, iterationBudget);
+
+        this._actionCounter = 0;
+    }
+    public QMSajidWaliaMarciszewicz(UnitTypeTable utt)
+    {
+        super(20,-1);
+        this._utt = utt;
+
+        this._actionCounter = 0;
+
+
+    }
+        /**
+         *  Method used to reset the agent to an initial configuration.
+         *  Method used to reset the agent to an initial configuration.
+         */
     @Override
     public void reset() {
         _actionCounter=0;
@@ -81,9 +97,7 @@ public class QMSajidWaliaMarciszewicz extends AIWithComputationBudget {
 
         //place for solutions(strategies) created on the basis of pregame analysis
 
-        //return new MonteCarloSearch(TIME_BUDGET,ITERATIONS_BUDGET,100,1000,new RandomAI(), new SimpleSqrtEvaluationFunction3())
-        //        .execute(player,gs,_utt,_pathFinding);
-        return new OEP(TIME_BUDGET, ITERATIONS_BUDGET,12,1).execute(player,gs,_utt,_pathFinding);
+        return new OEP(TIME_BUDGET, ITERATIONS_BUDGET,10,1).execute(player,gs,_utt, _pathFinding);
     }
 
 
