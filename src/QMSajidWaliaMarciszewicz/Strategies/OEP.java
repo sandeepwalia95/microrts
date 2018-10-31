@@ -324,6 +324,9 @@ public class OEP extends QMStrategy {
         ArrayList<Genome> mutatedIndividuals = new ArrayList<>();
         Random r = new Random(System.currentTimeMillis());
 
+        if(individuals.size()==0)
+            return mutatedIndividuals;
+
         int numMutations = (int) Math.ceil(individuals.get(0).genes.getActions().size()*percMutations);
 
         for (Genome g : individuals)
