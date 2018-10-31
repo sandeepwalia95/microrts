@@ -83,7 +83,7 @@ public class QMSajidWaliaMarciszewicz extends AIWithComputationBudget {
 
         //return new MonteCarloSearch(TIME_BUDGET,ITERATIONS_BUDGET,100,1000,new RandomAI(), new SimpleSqrtEvaluationFunction3())
         //        .execute(player,gs,_utt,_pathFinding);
-        return new OEP(TIME_BUDGET, ITERATIONS_BUDGET,6,1).execute(player,gs,_utt,_pathFinding);
+        return new OEP(TIME_BUDGET, ITERATIONS_BUDGET,12,1).execute(player,gs,_utt,_pathFinding);
     }
 
 

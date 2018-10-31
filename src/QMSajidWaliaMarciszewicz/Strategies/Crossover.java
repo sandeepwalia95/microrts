@@ -4,18 +4,17 @@ import rts.*;
 import rts.units.Unit;
 import util.Pair;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 public class Crossover {
 
     private Random r;
+    private boolean _replacementStrategy; //true - pick other random function; false - return TYPE_NONE action
 
-    public Crossover()
+    public Crossover(boolean strategy)
     {
         r= new Random(System.currentTimeMillis());
+        _replacementStrategy = strategy;
     }
 
     private void gatherResources(PlayerAction pa, GameState gs, PhysicalGameState pgs)
@@ -29,6 +28,32 @@ public class Crossover {
         }
     }
 
+    private UnitAction pickReplacementAction(Unit u, PlayerAction pa, GameState gs, PhysicalGameState pgs)
+    {
+        UnitAction action;
+        if(_replacementStrategy)
+        {
+            List<UnitAction> listOfActions = u.getUnitActions(gs);
+            boolean consistent = false;
+            Random r = new Random(System.currentTimeMillis());
+            do {
+                if(listOfActions.size()==0)
+                    action = new UnitAction(UnitAction.TYPE_NONE);
+                else
+                    action = listOfActions.remove(r.nextInt(listOfActions.size()));
+
+                ResourceUsage res = action.resourceUsage(u, pgs);
+
+                if (pa.getResourceUsage().consistentWith(res, gs)) 		{
+                    pa.getResourceUsage().merge(res);
+                    consistent = true;
+                }
+            } while (!consistent);
+        }
+        else
+            action = new UnitAction(UnitAction.TYPE_NONE);
+        return  action;
+    }
 
     /**
      * Function used to execute uniform crossover returning 2 children. (Each gene in a genome is picked randomly from one of the parents.)
@@ -69,12 +94,12 @@ public class Crossover {
             ResourceUsage r1 = action1.resourceUsage(u, pgs);
             if (!genesSequence1.getResourceUsage().consistentWith(r1, gs)) {
                 //if it is not consistent pick action NONE
-                action1 = new UnitAction(UnitAction.TYPE_NONE);
+                action1 =  pickReplacementAction(u,genesSequence1,gs,pgs);
             }
             ResourceUsage r2 = action2.resourceUsage(u, pgs);
             if (!genesSequence2.getResourceUsage().consistentWith(r2, gs)) {
                 //if it is not consistent pick action NONE
-                action2 = new UnitAction(UnitAction.TYPE_NONE);
+                action2 = pickReplacementAction(u,genesSequence2,gs,pgs);
             }
 
             //merge resourcs for the new ction
@@ -100,7 +125,9 @@ public class Crossover {
      */
     ArrayList<PlayerAction> singlePointCrossover2(Pair<OEP.Genome, OEP.Genome> parents, GameState gs)
     {
-        int position = 1+ r.nextInt(parents.m_b.genes.getActions().size()-1); //choose a position at individual at random
+        int position=0;
+        if(parents.m_b.genes.getActions().size()>1)
+            position = 1+ r.nextInt(parents.m_b.genes.getActions().size()-1); //choose a position at individual at random
 
         //create a genes sequences for the children
         PlayerAction genesSequence1 = new PlayerAction();
@@ -133,12 +160,12 @@ public class Crossover {
             ResourceUsage r1 = action1.resourceUsage(u, pgs);
             if (!genesSequence1.getResourceUsage().consistentWith(r1, gs)) {
                 //if it is not consistent pick action NONE
-                action1 = new UnitAction(UnitAction.TYPE_NONE);
+                action1 =  pickReplacementAction(u,genesSequence1,gs,pgs);
             }
             ResourceUsage r2 = action2.resourceUsage(u, pgs);
             if (!genesSequence2.getResourceUsage().consistentWith(r2, gs)) {
                 //if it is not consistent pick action NONE
-                action2 = new UnitAction(UnitAction.TYPE_NONE);
+                action2 = pickReplacementAction(u,genesSequence2,gs,pgs);
             }
 
             //merge resourcs for the new ction
@@ -170,9 +197,11 @@ public class Crossover {
         //first element of the pair is the position
         //second element of the pair is: true - take gene from parent A, false - take gene from parent B
         Map<Integer, Boolean> positions = new HashMap<>();
-        while(positions.size()<n)
+        while(positions.size()<n && positions.size()!=(parents.m_b.genes.getActions().size()-1))
         {
-            int pos =1+ r.nextInt(parents.m_b.genes.getActions().size()-1);
+            int pos =0;
+            if(parents.m_b.genes.getActions().size()>1)
+                pos = 1+ r.nextInt(parents.m_b.genes.getActions().size()-1);
             if(!positions.keySet().contains(pos))
                 positions.put(pos, r.nextInt(20) > 10);
         }
@@ -213,12 +242,12 @@ public class Crossover {
                 ResourceUsage r1 = action1.resourceUsage(u, pgs);
                 if (!genesSequence1.getResourceUsage().consistentWith(r1, gs)) {
                     //if it is not consistent pick action NONE
-                    action1 = new UnitAction(UnitAction.TYPE_NONE);
+                    action1 = pickReplacementAction(u,genesSequence1,gs,pgs);
                 }
                 ResourceUsage r2 = action2.resourceUsage(u, pgs);
                 if (!genesSequence2.getResourceUsage().consistentWith(r2, gs)) {
                     //if it is not consistent pick action NONE
-                    action2 = new UnitAction(UnitAction.TYPE_NONE);
+                    action2 = pickReplacementAction(u,genesSequence2,gs,pgs);
                 }
 
                 //merge resourcs for the new ction
@@ -267,8 +296,8 @@ public class Crossover {
             //check if the new action for the unit is consistent
             ResourceUsage r2 = action.resourceUsage(u, pgs);
             if (!genesSequence.getResourceUsage().consistentWith(r2, gs)) {
-                //if it is not consistent pick action NONE
-                action = new UnitAction(UnitAction.TYPE_NONE);
+                action = pickReplacementAction(u,genesSequence,gs,pgs);
+
             }
 
             //merge resourcs for the new ction
@@ -289,7 +318,9 @@ public class Crossover {
      */
     PlayerAction singlePointCrossover(Pair<OEP.Genome, OEP.Genome> parents, GameState gs)
     {
-        int position = 1+ r.nextInt(parents.m_b.genes.getActions().size()-1); //choose a position at individual at random
+        int position=0;
+        if(parents.m_b.genes.getActions().size()>1)
+            position = 1+ r.nextInt(parents.m_b.genes.getActions().size()-1); //choose a position at individual at random
 
         //create a genes sequence for the child
         PlayerAction genesSequence = new PlayerAction();
@@ -315,7 +346,7 @@ public class Crossover {
             ResourceUsage r2 = action.resourceUsage(u, pgs);
             if (!genesSequence.getResourceUsage().consistentWith(r2, gs)) {
                 //if it is not consistent pick action NONE
-                action = new UnitAction(UnitAction.TYPE_NONE);
+                action = pickReplacementAction(u,genesSequence,gs,pgs);
             }
 
             //merge resourcs for the new ction
@@ -341,9 +372,11 @@ public class Crossover {
         //first element of the pair is the position
         //second element of the pair is: true - take gene from parent A, false - take gene from parent B
         Map<Integer, Boolean> positions = new HashMap<>();
-        while(positions.size()<n)
+        while(positions.size()<n && positions.size()!=(parents.m_b.genes.getActions().size()-1))
         {
-            int pos =1+ r.nextInt(parents.m_b.genes.getActions().size()-1);
+            int pos =0;
+            if(parents.m_b.genes.getActions().size()>1)
+                pos = 1+ r.nextInt(parents.m_b.genes.getActions().size()-1);
             if(!positions.keySet().contains(pos))
                 positions.put(pos, r.nextInt(20) > 10);
         }
@@ -375,7 +408,7 @@ public class Crossover {
                 ResourceUsage r2 = action.resourceUsage(u, pgs);
                 if (!genesSequence.getResourceUsage().consistentWith(r2, gs)) {
                     //if it is not consistent pick action NONE
-                    action = new UnitAction(UnitAction.TYPE_NONE);
+                    action = pickReplacementAction(u,genesSequence,gs,pgs);
                 }
 
                 //merge resourcs for the new ction
