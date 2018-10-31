@@ -1,12 +1,16 @@
 package QMSajidWaliaMarciszewicz.Strategies;
 
 import ai.abstraction.pathfinding.PathFinding;
+import ai.evaluation.EvaluationFunction;
 import ai.evaluation.SimpleSqrtEvaluationFunction3;
+import ai.evaluation.EvaluationFunctionForwarding;
 import rts.*;
 import rts.units.Unit;
 import rts.UnitAction;
 import rts.units.UnitTypeTable;
 import util.Pair;
+import weka.classifiers.evaluation.Evaluation;
+
 import java.util.*;
 
 
@@ -23,7 +27,7 @@ public class OEP extends QMStrategy {
     //parameter used for selection of parents for new generation
     private double _kparents=0.0; // had to switch back to double. was getting zeroed.
     private int _lookahead; //how far in future are we looking/ how long is the genome
-    private int _numMutations = 1;
+    private int _numMutations = 1;//Changed to 2
 
     public class Population{
         ArrayList<Genome> individuals;
@@ -188,12 +192,16 @@ public class OEP extends QMStrategy {
             }
 
             //evaluate fitness after the number of cycles
-            _population.individuals.get(index).fitness = new SimpleSqrtEvaluationFunction3().base_score(_playerID,gs3);
+            //_population.individuals.get(index).fitness = new SimpleSqrtEvaluationFunction3().base_score(_playerID,gs3);
+            //_population.individuals.get(index).fitness = new SimpleSqrtEvaluationFunction3().evaluate
+              //      (_playerID,1-_playerID, gs3);
+            EvaluationFunction baseEval = new SimpleSqrtEvaluationFunction3();
+            _population.individuals.get(index).fitness = new EvaluationFunctionForwarding(baseEval).evaluate
+                    (_playerID,1-_playerID, gs3);
 
         }
 
     }
-
 
     ArrayList<Genome> selectParents(int k)
     {
@@ -426,10 +434,10 @@ public class OEP extends QMStrategy {
                         UnitAction ua = bestSolution.getAction(u);
 
                         //check if action is consistent with the resources
-                      //  if (ua.resourceUsage(u, pgs).consistentWith(_actionsToBePerformed.getResourceUsage(), gs)) {
-                            //if action is consistent
-                            ResourceUsage ru = ua.resourceUsage(u, pgs);
-                            _actionsToBePerformed.getResourceUsage().merge(ru);
+                        //  if (ua.resourceUsage(u, pgs).consistentWith(_actionsToBePerformed.getResourceUsage(), gs)) {
+                        //if action is consistent
+                        ResourceUsage ru = ua.resourceUsage(u, pgs);
+                        _actionsToBePerformed.getResourceUsage().merge(ru);
  /*                       } else {
 
                             //pick another random action for a unit
