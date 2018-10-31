@@ -23,7 +23,7 @@ public class OEP extends QMStrategy {
     //parameter used for selection of parents for new generation
     private double _kparents=0.0; // had to switch back to double. was getting zeroed.
     private int _lookahead; //how far in future are we looking/ how long is the genome
-    private int _numMutations = 1;
+    private double _numMutations = 1.0;
 
     public class Population{
         ArrayList<Genome> individuals;
@@ -319,10 +319,12 @@ public class OEP extends QMStrategy {
         return returnedGenomes;
     }
 
-    ArrayList<Genome> mutation(ArrayList<Genome> individuals, int numMutations, GameState gs)
+    ArrayList<Genome> mutation(ArrayList<Genome> individuals, double percMutations, GameState gs)
     {
         ArrayList<Genome> mutatedIndividuals = new ArrayList<>();
         Random r = new Random(System.currentTimeMillis());
+
+        int numMutations = (int) Math.ceil(individuals.get(0).genes.getActions().size()*percMutations);
 
         for (Genome g : individuals)
         {
