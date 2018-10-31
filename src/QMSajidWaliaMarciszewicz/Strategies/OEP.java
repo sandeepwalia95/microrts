@@ -1,6 +1,8 @@
 package QMSajidWaliaMarciszewicz.Strategies;
 
 import ai.abstraction.pathfinding.PathFinding;
+import ai.evaluation.EvaluationFunction;
+import ai.evaluation.EvaluationFunctionForwarding;
 import ai.evaluation.SimpleSqrtEvaluationFunction3;
 import rts.*;
 import rts.units.Unit;
@@ -188,7 +190,13 @@ public class OEP extends QMStrategy {
             }
 
             //evaluate fitness after the number of cycles
-            _population.individuals.get(index).fitness = new SimpleSqrtEvaluationFunction3().base_score(_playerID,gs3);
+//            _population.individuals.get(index).fitness = new SimpleSqrtEvaluationFunction3().base_score(_playerID,gs3);
+            EvaluationFunction baseEval = new SimpleSqrtEvaluationFunction3();
+            _population.individuals.get(index).fitness = new EvaluationFunctionForwarding(baseEval).evaluate
+                    (_playerID,1-_playerID, gs3);
+
+//            _population.individuals.get(index).fitness = new SimpleSqrtEvaluationFunction3().
+//                    evaluate(_playerID,1-_playerID,gs3);
 
         }
 
