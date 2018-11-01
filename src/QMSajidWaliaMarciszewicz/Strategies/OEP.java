@@ -27,7 +27,7 @@ public class OEP extends QMStrategy {
     //parameter used for selection of parents for new generation
     private double _kparents=0.0; // had to switch back to double. was getting zeroed.
     private int _lookahead; //how far in future are we looking/ how long is the genome
-    private double _numMutations = 0.2;
+    private double _numMutations = 0.4;
 
     public class Population{
         ArrayList<Genome> individuals;
@@ -306,7 +306,7 @@ public class OEP extends QMStrategy {
             idGenerator++;
 
             GameState gsClone = gs.clone();
-            kid.genes = crossover.singlePointCrossover(parents, gsClone);
+            kid.genes = crossover.nPointsCrossover(parents,2, gsClone);
             kids.add(kid);
         }
 

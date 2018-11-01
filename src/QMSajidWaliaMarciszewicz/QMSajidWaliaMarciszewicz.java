@@ -97,7 +97,7 @@ public class QMSajidWaliaMarciszewicz extends AIWithComputationBudget {
 
         //place for solutions(strategies) created on the basis of pregame analysis
 
-        return new OEP(TIME_BUDGET, ITERATIONS_BUDGET,10,10).execute(player,gs,_utt, _pathFinding);
+        return new OEP(TIME_BUDGET, ITERATIONS_BUDGET,12,10).execute(player,gs,_utt, _pathFinding);
     }
 
 

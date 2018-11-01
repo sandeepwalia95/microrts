@@ -377,10 +377,13 @@ public class Crossover {
             int pos =0;
             if(parents.m_b.genes.getActions().size()>1)
                 pos = 1+ r.nextInt(parents.m_b.genes.getActions().size()-1);
-            if(!positions.keySet().contains(pos))
+            if(pos!=0 && !positions.keySet().contains(pos))
                 positions.put(pos, r.nextInt(20) > 10);
         }
         positions.put(parents.m_b.genes.getActions().size(), r.nextInt(20) > 10); //add last index - only for the implementation purpose
+
+        //sorting the positions list
+        Map<Integer,Boolean> treePositions = new TreeMap<Integer,Boolean>(positions);
 
         //create a genes sequence for the child
         PlayerAction genesSequence = new PlayerAction();
@@ -389,10 +392,11 @@ public class Crossover {
         //collecting resources that are currently used in the game state
         gatherResources(genesSequence,gs,pgs);
         int a=0,b=0; //boundaries of the section to be moved to a kid
-        for(Integer pos: positions.keySet())
+        for(Integer pos: treePositions.keySet())
         {
             a=b;
             b=pos;
+
             for(int i=a;i<b;i++)
             {
                 //take the unit from the position i
