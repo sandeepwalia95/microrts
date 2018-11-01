@@ -1,6 +1,8 @@
 package QMSajidWaliaMarciszewicz.Strategies;
 
+import ai.RandomAI;
 import ai.abstraction.pathfinding.PathFinding;
+import ai.core.AI;
 import ai.evaluation.EvaluationFunction;
 import ai.evaluation.EvaluationFunctionForwarding;
 import ai.evaluation.SimpleSqrtEvaluationFunction3;
@@ -25,7 +27,7 @@ public class OEP extends QMStrategy {
     //parameter used for selection of parents for new generation
     private double _kparents=0.0; // had to switch back to double. was getting zeroed.
     private int _lookahead; //how far in future are we looking/ how long is the genome
-    private double _numMutations = 1.0;
+    private double _numMutations = 0.2;
 
     public class Population{
         ArrayList<Genome> individuals;
@@ -55,6 +57,10 @@ public class OEP extends QMStrategy {
     private Population _population;
 
 
+    //------------
+    AI randomAI;
+    //-----------
+
 
     public OEP(int timeBudget, int iterationBudget, int populationSize, int lookahead){
         this.TIME_BUDGET = timeBudget;
@@ -63,6 +69,7 @@ public class OEP extends QMStrategy {
         this._lookahead = lookahead;
         this._population = new Population();
         this._kparents = 0;
+        this.randomAI = new RandomAI();
     }
 
     @Override
@@ -138,6 +145,8 @@ public class OEP extends QMStrategy {
                 int actionsNumber = u.getUnitActions(gs).size();
                 if(actionsNumber!=0)
                     n*=actionsNumber;
+                if(n<0)
+                    return _populationSize;
             }
         }
         return n<_populationSize?n:_populationSize;
@@ -161,6 +170,45 @@ public class OEP extends QMStrategy {
         return true; //there are some available actions for this player
     }
 
+
+    /**
+     * Evaluation of the genome with the use of MonteCarlo
+     * @param pa
+     * @param gs
+     * @return
+     */
+    private double evaluateMonteCarlo(PlayerAction pa, GameState gs, EvaluationFunction ef)
+    {
+        GameState gs2 = gs.cloneIssue(pa);
+        GameState gs3 = gs2.clone();
+        int time=0;
+        try {
+            simulate(gs3, gs3.getTime() + _lookahead);
+            time = gs3.getTime() - gs2.getTime();
+        }catch(Exception e)
+        {
+            time=-1;
+        }
+
+        return ef.evaluate(_playerID, 1-_playerID, gs3)*Math.pow(0.99,time/10.0);
+    }
+
+    public void simulate(GameState gs, int time) throws Exception {
+        boolean gameover = false;
+
+        do{
+            if (gs.isComplete()) {
+                gameover = gs.cycle();
+            } else {
+                gs.issue(randomAI.getAction(0, gs));
+                gs.issue(randomAI.getAction(1, gs));
+            }
+        }while(!gameover && gs.getTime()<time);
+    }
+
+
+
+
     void evaluatePopulation(GameState gs)
     {
         for(int index = 0; index < _population.individuals.size(); index++)
@@ -178,6 +226,12 @@ public class OEP extends QMStrategy {
                     maxTime = uaa.m_b.ETA(uaa.m_a);
             }
 
+            //-------------------
+            EvaluationFunction baseEval = new SimpleSqrtEvaluationFunction3();
+            double MCev = evaluateMonteCarlo(_population.individuals.get(index).genes,gs,baseEval);
+            //--------------------
+
+
             // Given the current game state, execute the starting PlayerAction and clone the state
             GameState gs2 = gs.cloneIssue(pa_to_eval);
 
@@ -191,9 +245,14 @@ public class OEP extends QMStrategy {
 
             //evaluate fitness after the number of cycles
 //            _population.individuals.get(index).fitness = new SimpleSqrtEvaluationFunction3().base_score(_playerID,gs3);
-            EvaluationFunction baseEval = new SimpleSqrtEvaluationFunction3();
-            _population.individuals.get(index).fitness = new EvaluationFunctionForwarding(baseEval).evaluate
-                    (_playerID,1-_playerID, gs3);
+         //   EvaluationFunction baseEval = new SimpleSqrtEvaluationFunction3();
+//            _population.individuals.get(index).fitness = new EvaluationFunctionForwarding(baseEval).evaluate
+//                    (_playerID,1-_playerID, gs3);
+
+            float ev = new EvaluationFunctionForwarding(baseEval).evaluate(_playerID,1-_playerID, gs3);
+
+            _population.individuals.get(index).fitness = (float) (0.2*ev +0.8*MCev);
+
 
 //            _population.individuals.get(index).fitness = new SimpleSqrtEvaluationFunction3().
 //                    evaluate(_playerID,1-_playerID,gs3);
