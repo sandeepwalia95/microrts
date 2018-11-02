@@ -14,7 +14,7 @@ import util.Pair;
 import java.util.*;
 
 
-public class OEP extends QMStrategy {
+public class OEP {
 
     private int idGenerator =0;
     private int TIME_BUDGET;
@@ -72,7 +72,6 @@ public class OEP extends QMStrategy {
         this.randomAI = new RandomAI();
     }
 
-    @Override
     public PlayerAction execute(int player, GameState gs, UnitTypeTable utt, PathFinding pf) throws Exception {
 
         _playerID = player;
@@ -475,9 +474,7 @@ public class OEP extends QMStrategy {
 
     }
 
-
-    @Override
-    public QMStrategy clone() {
+    public OEP clone() {
         return new OEP(TIME_BUDGET,ITERATIONS_BUDGET,_populationSize, _lookahead);
     }
 

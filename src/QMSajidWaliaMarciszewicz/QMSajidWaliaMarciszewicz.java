@@ -1,19 +1,13 @@
 package QMSajidWaliaMarciszewicz;
 
-import QMSajidWaliaMarciszewicz.Strategies.MonteCarloSearch;
 import QMSajidWaliaMarciszewicz.Strategies.OEP;
-import ai.RandomAI;
-import ai.abstraction.pathfinding.GreedyPathFinding;
 import ai.abstraction.pathfinding.PathFinding;
 import ai.core.AI;
 import ai.core.AIWithComputationBudget;
 import ai.core.ParameterSpecification;
-import ai.evaluation.SimpleSqrtEvaluationFunction3;
 import rts.GameState;
 import rts.PlayerAction;
-import rts.units.Unit;
 import rts.units.UnitTypeTable;
-
 import java.util.*;
 
 public class QMSajidWaliaMarciszewicz extends AIWithComputationBudget {
@@ -58,24 +52,37 @@ public class QMSajidWaliaMarciszewicz extends AIWithComputationBudget {
         this._actionCounter=0;
     }
 
+    /**
+     * A constructor of a class initiating its private fields. Can be used for creating a new instance of a bot.
+     *
+     * @param timeBudget indicates the time the agent has to select an action. If -1 is passed, it’ll be infinite
+     * @param iterationBudget indicates the number of maximum iteration certain algorithms can run. It’ll
+     *     be normally -1, which also means infinite
+     */
     public QMSajidWaliaMarciszewicz(int timeBudget, int iterationBudget) {
         super(timeBudget, iterationBudget);
 
         this._actionCounter = 0;
     }
+
+    /**
+     * A constructor of a class initiating its private fields. Can be used for creating a new instance of a bot.
+     * Sets default value for timeBudget to 20 and iterationBudget to -1.
+     *
+     * @param utt a reference to an object that contains information about the available unit
+     *     types in the game and their settings.
+     */
     public QMSajidWaliaMarciszewicz(UnitTypeTable utt)
     {
         super(20,-1);
         this._utt = utt;
-
         this._actionCounter = 0;
-
-
     }
-        /**
-         *  Method used to reset the agent to an initial configuration.
-         *  Method used to reset the agent to an initial configuration.
-         */
+
+
+    /**
+     * Method used to reset the agent to an initial configuration.
+     */
     @Override
     public void reset() {
         _actionCounter=0;
@@ -97,7 +104,7 @@ public class QMSajidWaliaMarciszewicz extends AIWithComputationBudget {
 
         //place for solutions(strategies) created on the basis of pregame analysis
 
-        return new OEP(TIME_BUDGET, ITERATIONS_BUDGET,12,10).execute(player,gs,_utt, _pathFinding);
+        return new OEP(TIME_BUDGET, ITERATIONS_BUDGET,12,150).execute(player,gs,_utt, _pathFinding);
     }
 
 
