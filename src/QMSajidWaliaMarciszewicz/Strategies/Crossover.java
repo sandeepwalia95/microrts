@@ -8,7 +8,7 @@ import java.util.*;
 /**
  * Class responsible for delivering different methods of crossover used in the OEP algorithm.
  */
-public class Crossover {
+class Crossover {
 
     /**
      * Object used for generating random values.
@@ -29,7 +29,7 @@ public class Crossover {
      * @param strategy parameter deciding whether we are picking UnitAction.TYPE_NONE for an illegal action or we are trying to find some
      * other legal action at random.
      */
-    public Crossover(boolean strategy)
+    Crossover(boolean strategy)
     {
         r= new Random(System.currentTimeMillis());
         _replacementStrategy = strategy;
@@ -59,7 +59,7 @@ public class Crossover {
      * actions for a particular unit picking one of them at random.
      *
      * @param u unit for which we are picking the action
-     * @param pa PlayerAction object which contains all the actions and units we are currently analising
+     * @param pa PlayerAction object which contains all the actions and units we are currently analysing
      * @param gs current game state
      * @param pgs current physical game state
      * @return UnitAction to be assigned to a Unit instead of the illegal action assigned previously to a unit
@@ -116,7 +116,7 @@ public class Crossover {
             Unit u = parents.m_a.genes.getActions().get(i).m_a;
             UnitAction action;
 
-            //take the unitaction
+            //take the UnitAction
             if(r.nextInt(20)>10)
                 action = parents.m_a.genes.getAction(u);             //parent A
             else
@@ -128,7 +128,7 @@ public class Crossover {
                 action = pickReplacementAction(u,genesSequence,gs,pgs); //pick a replacement action for illegal action
             }
 
-            //merge resourcs for the new action
+            //merge resources for the new action
             genesSequence.getResourceUsage().merge(action.resourceUsage(u, pgs));
             //add new pair to the genes sequence (PlayerAction)
             genesSequence.addUnitAction(u,action);
@@ -138,7 +138,7 @@ public class Crossover {
     }
 
     /**
-     * Function used to execute single point crossover. (Pick poistion in the genome and copy one part of it from first
+     * Function used to execute single point crossover. (Pick position in the genome and copy one part of it from first
      * parent and the rest from the second one.)
      * @param parents pair of Genomes used for creation of a new individual
      * @param gs current game state
@@ -177,7 +177,7 @@ public class Crossover {
                 action = pickReplacementAction(u,genesSequence,gs,pgs); //pick the replacement action for the illegal action
             }
 
-            //merge resourcs for the new ction
+            //merge resources for the new action
             genesSequence.getResourceUsage().merge(action.resourceUsage(u, pgs));
             //add new pair to the genes sequence (PlayerAction)
             genesSequence.addUnitAction(u,action);
@@ -211,7 +211,7 @@ public class Crossover {
         positions.put(parents.m_b.genes.getActions().size(), r.nextInt(20) > 10); //add last index - only for the implementation purpose
 
         //sorting the list of positions
-        Map<Integer,Boolean> treePositions = new TreeMap<Integer,Boolean>(positions);
+        Map<Integer,Boolean> treePositions = new TreeMap<>(positions);
 
         //create a genes sequence for the child
         PlayerAction genesSequence = new PlayerAction();
@@ -219,7 +219,7 @@ public class Crossover {
         PhysicalGameState pgs = gs.getPhysicalGameState();
         //collecting resources that are currently used in the game state
         gatherResources(genesSequence,gs,pgs);
-        int a=0,b=0; //boundaries of the section to be moved to a kid
+        int a,b=0; //boundaries of the section to be moved to a kid
         for(Integer pos: treePositions.keySet())
         {
             a=b;
@@ -242,7 +242,7 @@ public class Crossover {
                     action = pickReplacementAction(u,genesSequence,gs,pgs); //pick the replacement action for illegal action
                 }
 
-                //merge resourcs for the new ction
+                //merge resources for the new action
                 genesSequence.getResourceUsage().merge(action.resourceUsage(u, pgs));
                 //add new pair to the genes sequence (PlayerAction)
                 genesSequence.addUnitAction(u,action);

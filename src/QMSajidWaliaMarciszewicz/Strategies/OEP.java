@@ -14,7 +14,7 @@ import util.Pair;
 import java.util.*;
 
 /**
- * Class containing the implementation of the whole OEP algorithm being the main startegy used by the bot QMSajidWaliaMarciszewicz
+ * Class containing the implementation of the whole OEP algorithm being the main strategy used by the bot QMSajidWaliaMarciszewicz
  * Class contains definition off all needed methods used at every stage of the algorithm.
  */
 public class OEP {
@@ -44,12 +44,12 @@ public class OEP {
      * Object used for generating random PlayerAction object valid for the given game state. These PlayerAction objects
      * are later on used as gene sequences in a Genome object
      */
-    PlayerActionGenerator genomesGenerator = null;
+    private PlayerActionGenerator genomesGenerator = null;
 
     /**
      * Parameter determining number of parents that should be selected from the generation
      */
-    private double _kparents=0.0;
+    private double _kparents;
     /**
      * Field storing the value that is depicting how far in the future are we looking while using the Monte Carlo in the evaluation
      * function.
@@ -58,12 +58,12 @@ public class OEP {
     /**
      * Field being a percentage of genes in a genome that should undergo mutation.
      */
-    private double _numMutations = 0.0;
+    private double _numMutations;
     /**
      * Field storing the AI bot being used in a simulation phase of the Monte Carlo algorithm that is being used in the
      * evaluation stage of the OEP algorithm.
      */
-    AI randomAI;
+    private AI randomAI;
 
     /**
      * Class used for storing the population evaluated in a game cycle.
@@ -77,7 +77,7 @@ public class OEP {
         /**
          * Constructor initializing the list of individuals.
          */
-        public Population()
+        Population()
         {
             individuals = new ArrayList<>();
         }
@@ -101,7 +101,7 @@ public class OEP {
         float fitness;
 
         /**
-         * Function used to define the way two Genome obejcts are compared.
+         * Function used to define the way two Genome objects are compared.
          * Genomes are compared with the regard of the value of fitness function.
          * @param o genome that is being compared with current Genome
          * @return 1 - if current genome is greater than given one; -1 - if current genome is smaller than given one;
@@ -162,7 +162,6 @@ public class OEP {
      * @param utt a reference to an object that contains information about the available unit
      *     types in the game and their settings.
      * @return PLayerAction object that should be issued in the next game cycle, calculated by the algorithm
-     * @throws Exception
      */
     public PlayerAction execute(int player, GameState gs, UnitTypeTable utt) throws Exception {
 
@@ -238,9 +237,8 @@ public class OEP {
     /**
      * Method used to generate the population of random individuals
      * @param gs current game state
-     * @throws Exception
      */
-    private void generatePopulation(GameState gs) throws Exception
+    private void generatePopulation(GameState gs)
     {
         genomesGenerator.randomizeOrder();
         int N = findPopulationSize(gs); //so to not calculate it every time the loop is being executed
@@ -269,7 +267,7 @@ public class OEP {
     {
         GameState gs2 = gs.cloneIssue(pa);
         GameState gs3 = gs2.clone();
-        int time=0;
+        int time;
         try {
             //issuing a playoff
             simulate(gs3, gs3.getTime() + _lookahead);
@@ -286,7 +284,6 @@ public class OEP {
      * Fuction used for issuing the playoff in the MonteCarlo
      * @param gs current game state
      * @param time time that can be used for performign the playoff
-     * @throws Exception
      */
     public void simulate(GameState gs, int time) throws Exception {
         boolean gameover = false;
@@ -307,7 +304,7 @@ public class OEP {
      * Method used for evaluation of all the genomes in the population. Method is filling in the fitness field of the genome.
      * @param gs current game state used for the evaluation
      */
-    void evaluatePopulation(GameState gs)
+    private void evaluatePopulation(GameState gs)
     {
         for(int index = 0; index < _population.individuals.size(); index++)
         {
@@ -332,7 +329,7 @@ public class OEP {
             // Given the current game state, execute the starting PlayerAction and clone the state
             GameState gs2 = gs.cloneIssue(pa_to_eval);
 
-            //Make a copy of the resultant state for the rollout
+            //Make a copy of the resultant state for the roll-out
             GameState gs3 = gs2.clone();
 
             //Cycle forward by the number of cycles
@@ -343,7 +340,7 @@ public class OEP {
             //evaluate game state after cycling to the moment when all the issued actions have been completed
             float ev = new EvaluationFunctionForwarding(baseEval).evaluate(_playerID,1-_playerID, gs3);
 
-            //calcuate the final value of the fitness fuction with the given weights that represent the proportions between
+            //calculate the final value of the fitness function with the given weights that represent the proportions between
             //the use of simple evaluation and Monte Carlo evaluation
             _population.individuals.get(index).fitness = (float) (0.9*ev +0.1*MCev);
 
@@ -356,7 +353,7 @@ public class OEP {
      * @param k number of parents to be selected from the population
      * @return list of Genomes of parents that will generate the new population
      */
-    ArrayList<Genome> selectParents(int k)
+    private ArrayList<Genome> selectParents(int k)
     {
         //return list of k parents selected from the population
         ArrayList<Genome> parents = new ArrayList<>();
@@ -375,9 +372,9 @@ public class OEP {
     /**
      * Method used for making pairs from the parents
      * @param parents list of individuals selected from the population that should be paired
-     * @return list of the pairs that is going to be used in the corssover method
+     * @return list of the pairs that is going to be used in the crossover method
      */
-    ArrayList<Pair<Genome,Genome>> pairIndividuals(ArrayList<Genome> parents)
+    private ArrayList<Pair<Genome,Genome>> pairIndividuals(ArrayList<Genome> parents)
     {
         ArrayList <Pair<Genome,Genome>> pairs = new ArrayList<>();
 
@@ -399,7 +396,7 @@ public class OEP {
      * @param gs current game state
      * @return list of newly created individuals (kids)
      */
-    ArrayList<Genome> crossover(ArrayList<Pair<Genome,Genome>> couples, GameState gs)
+    private ArrayList<Genome> crossover(ArrayList<Pair<Genome,Genome>> couples, GameState gs)
     {
         //perform crossover on given pairs
         ArrayList<Genome> kids = new ArrayList<>();
@@ -429,7 +426,7 @@ public class OEP {
      * @param gs current game state
      * @return list of mutated genomes
      */
-    ArrayList<Genome> mutation(ArrayList<Genome> individuals, double percMutations, GameState gs)
+    private ArrayList<Genome> mutation(ArrayList<Genome> individuals, double percMutations, GameState gs)
     {
         ArrayList<Genome> mutatedIndividuals = new ArrayList<>();
         Random r = new Random(System.currentTimeMillis());
@@ -438,7 +435,7 @@ public class OEP {
         if(individuals.size()==0)
             return mutatedIndividuals;
 
-        //calcualte the number of genes that should be mutated
+        //calculate the number of genes that should be mutated
         int numMutations = (int) Math.ceil(individuals.get(0).genes.getActions().size()*percMutations);
 
         for (Genome g : individuals)
@@ -478,7 +475,7 @@ public class OEP {
 
                     UnitAction newUnitAction;
                     if(listOfActions.size()==0)
-                        newUnitAction = new UnitAction(UnitAction.TYPE_NONE); //if no action is avilable return UnitAction.TYPE_NONE
+                        newUnitAction = new UnitAction(UnitAction.TYPE_NONE); //if no action is available return UnitAction.TYPE_NONE
                     else
                         // Select a random action from the units possible actions
                         newUnitAction= listOfActions.remove(r.nextInt(listOfActions.size()));
@@ -509,9 +506,9 @@ public class OEP {
      * Method used at the final stage of the algorithm. It picks the best individual from the generation and returns its
      * sequence of the genes as a PlayerAction that should be issued in the next game cycle
      * @param gs current game state
-     * @return PlayerAction object containg all the actions for the units that should be issued in the next game cycle
+     * @return PlayerAction object containing all the actions for the units that should be issued in the next game cycle
      */
-    PlayerAction bestIndividual(GameState gs)
+    private PlayerAction bestIndividual(GameState gs)
     {
         //evaluate the population
         evaluatePopulation(gs);

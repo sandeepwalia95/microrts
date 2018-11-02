@@ -95,11 +95,8 @@ public class QMSajidWaliaMarciszewicz extends AIWithComputationBudget {
         _actionCounter++;
         _playerID = player;
 
-        //place for solutions(strategies) created on the basis of pregame analysis
-
         return new OEP(TIME_BUDGET, ITERATIONS_BUDGET,12,0.4,150).execute(player,gs,_utt);
     }
-
 
     /**
      * Method used to create an exact copy of the agent.
@@ -122,7 +119,6 @@ public class QMSajidWaliaMarciszewicz extends AIWithComputationBudget {
     public List<ParameterSpecification> getParameters() {
 
         List<ParameterSpecification> params = new ArrayList<>();
-
         params.add(new ParameterSpecification("TimeBudget",int.class,TIME_BUDGET));
         params.add(new ParameterSpecification("IterationsBudget",int.class,ITERATIONS_BUDGET));
         params.add(new ParameterSpecification("UnitTypeTable",UnitTypeTable.class,_utt));
