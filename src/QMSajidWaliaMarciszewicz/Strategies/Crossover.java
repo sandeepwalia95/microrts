@@ -16,7 +16,7 @@ class Crossover {
     private Random r;
 
     /**
-     * Parameter deciding whether we are picking UnitAction.TYPE_NONE for an illegal action or we are trying to find some
+     * Parameter deciding whether we are picking UnitAction.TYPE_NONE to replace the illegal action or we are trying to find some
      * other legal action at random.
      * TRUE - pick other random function
      * FALSE - return TYPE_NONE action

@@ -1,7 +1,6 @@
 package QMSajidWaliaMarciszewicz.Strategies;
 
 import ai.RandomAI;
-import ai.abstraction.pathfinding.PathFinding;
 import ai.core.AI;
 import ai.evaluation.EvaluationFunction;
 import ai.evaluation.EvaluationFunctionForwarding;
@@ -28,7 +27,7 @@ public class OEP {
      */
     private int TIME_BUDGET;
     /**
-     * Variable storing th iterations budget for the calculations of a strategy
+     * Variable storing the iterations budget for the calculations of a strategy
      */
     private int ITERATIONS_BUDGET;
     /**
@@ -41,7 +40,7 @@ public class OEP {
      */
     private int _playerID;
     /**
-     * Object used for generating random PlayerAction object valid for the given game state. These PlayerAction objects
+     * Object used for generating random PlayerAction objects valid for the given game state. These PlayerAction objects
      * are later on used as gene sequences in a Genome object
      */
     private PlayerActionGenerator genomesGenerator = null;
@@ -102,7 +101,7 @@ public class OEP {
 
         /**
          * Function used to define the way two Genome objects are compared.
-         * Genomes are compared with the regard of the value of fitness function.
+         * Genomes are compared with the respect to the value of fitness function.
          * @param o genome that is being compared with current Genome
          * @return 1 - if current genome is greater than given one; -1 - if current genome is smaller than given one;
          * 0 - if genomes are equal
@@ -179,14 +178,14 @@ public class OEP {
             generatePopulation(_gs);
 
                 while(true) {
-                    if (TIME_BUDGET>0 && (System.currentTimeMillis() - start)>=TIME_BUDGET) break;
+                    if (TIME_BUDGET>0 && (System.currentTimeMillis() - start)>=(TIME_BUDGET-1)) break;
                     if (ITERATIONS_BUDGET>0 && nruns>=ITERATIONS_BUDGET) break;
 
                     //2. Evaluate population
                     evaluatePopulation(_gs);
                     //3. Select k individuals for the new population
                     _kparents = (_population.individuals.size()/3)*2;
-                    //Creating an ArrayList of parents which is k^ long
+                    //Create an ArrayList of parents which is k^ long
                     ArrayList<Genome> parents = new ArrayList<>(selectParents((int)(Math.ceil(_kparents))));
                     //4. Create pairs from selected individuals
                     ArrayList<Pair<Genome,Genome>> couples = pairIndividuals(parents);
