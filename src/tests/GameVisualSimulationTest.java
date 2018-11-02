@@ -38,7 +38,7 @@ public class GameVisualSimulationTest {
         //AI ai1 = new BotExercise5(TIME_BUDGET, -1, utt, new BFSPathFinding());  //new WorkerRush(utt, new BFSPathFinding());
 
         //AI ai1 = new WorkerRush(utt);
-        AI ai1 = new QMSajidWaliaMarciszewicz(TIME_BUDGET, -1, utt, new GreedyPathFinding());
+        AI ai1 = new QMSajidWaliaMarciszewicz(TIME_BUDGET, -1, utt);
         AI ai2 = new RandomBiasedAI();
         //AI ai2 = new RandomAI();
 //        AI ai2 = new WorkerRush( utt, new GreedyPathFinding());

@@ -18,11 +18,6 @@ public class QMSajidWaliaMarciszewicz extends AIWithComputationBudget {
     private UnitTypeTable _utt;
 
     /**
-     * Object that can run path-planning queries in the map.
-     */
-    private PathFinding _pathFinding;
-
-    /**
      * A variable used to keep track of how many times the bot is asked for an action.
      */
     private int _actionCounter;
@@ -41,13 +36,11 @@ public class QMSajidWaliaMarciszewicz extends AIWithComputationBudget {
      *     be normally -1, which also means infinite.
      * @param utt a reference to an object that contains information about the available unit
      *     types in the game and their settings.
-     * @param pathFinding a reference to an object that can run path-planning queries in the map.
      */
-    public QMSajidWaliaMarciszewicz(int timeBudget, int iterationBudget, UnitTypeTable utt, PathFinding pathFinding)
+    public QMSajidWaliaMarciszewicz(int timeBudget, int iterationBudget, UnitTypeTable utt)
     {
         super(timeBudget,iterationBudget);
         this._utt = utt;
-        this._pathFinding = pathFinding;
 
         this._actionCounter=0;
     }
@@ -104,7 +97,7 @@ public class QMSajidWaliaMarciszewicz extends AIWithComputationBudget {
 
         //place for solutions(strategies) created on the basis of pregame analysis
 
-        return new OEP(TIME_BUDGET, ITERATIONS_BUDGET,12,150).execute(player,gs,_utt, _pathFinding);
+        return new OEP(TIME_BUDGET, ITERATIONS_BUDGET,12,0.4,150).execute(player,gs,_utt);
     }
 
 
@@ -115,7 +108,7 @@ public class QMSajidWaliaMarciszewicz extends AIWithComputationBudget {
     @Override
     public AI clone() {
 
-        QMSajidWaliaMarciszewicz instance = new QMSajidWaliaMarciszewicz(getTimeBudget(),getIterationsBudget(),_utt, _pathFinding);
+        QMSajidWaliaMarciszewicz instance = new QMSajidWaliaMarciszewicz(getTimeBudget(),getIterationsBudget(),_utt);
         instance._playerID=_playerID;
         instance._actionCounter=_actionCounter;
         return instance;
@@ -133,7 +126,6 @@ public class QMSajidWaliaMarciszewicz extends AIWithComputationBudget {
         params.add(new ParameterSpecification("TimeBudget",int.class,TIME_BUDGET));
         params.add(new ParameterSpecification("IterationsBudget",int.class,ITERATIONS_BUDGET));
         params.add(new ParameterSpecification("UnitTypeTable",UnitTypeTable.class,_utt));
-        params.add(new ParameterSpecification("PathFinding",PathFinding.class,_pathFinding));
 
         return params;
     }

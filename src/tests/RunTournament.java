@@ -50,7 +50,7 @@ public class RunTournament {
         List<String> maps = new ArrayList<>();
 
         AIs.add(new RandomAI());
-        AIs.add(new QMSajidWaliaMarciszewicz(timeBudget, -1, utt, new GreedyPathFinding()));
+        AIs.add(new QMSajidWaliaMarciszewicz(timeBudget, -1, utt));
         maps.add("maps/16x16/basesWorkers16x16.xml");
         maps.add("maps/24x24/basesWorkers24x24H.xml");
         maps.add("maps/16x16/TwoBasesBarracks16x16.xml");
